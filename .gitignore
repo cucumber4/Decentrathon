@@ -1,0 +1,17 @@
+venv
+.idea
+.env
+
+# Ignore Python bytecode files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore __pycache__ directories
+__pycache__/
+
+# Ignore other files and directories
+node_modules/
+dist/
+build/
+.env
