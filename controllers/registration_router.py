@@ -36,7 +36,7 @@ TOKEN_ABI = [
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=TOKEN_ABI)
 
 
-@router.post("/register/")
+@router.post("/register")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.wallet_address == user.wallet_address).first():
         raise HTTPException(status_code=400, detail="Кошелек уже зарегистрирован")

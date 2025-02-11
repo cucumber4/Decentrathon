@@ -5,8 +5,17 @@ from controllers.auth_router import router as auth_router
 from controllers.admin_router import router as admin_router
 from controllers.poll_router import router as poll_router
 from controllers.vote_router import router as vote_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешаем все домены (лучше указать нужные)
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешаем все методы
+    allow_headers=["*"],  # Разрешаем все заголовки
+)
 
 # Настраиваем OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/login")
