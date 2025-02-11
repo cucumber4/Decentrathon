@@ -1,4 +1,5 @@
 ## Before Run
+## Backend part
 
 1. **Install MetaMask Extension**:
    - Add the Sepolia test network.
@@ -23,3 +24,7 @@
 - All APIs can be found in the `controllers` folder with all available endpoints.
 - Built-in API tester available at `/docs` with documentation.
 - **Recommended Tool**: Postman is also good for api testing
+
+## Frontend part
+- Open CLI in front folder
+- Run  `npm start` command
