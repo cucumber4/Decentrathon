@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from schemas.user_scheme import User
+from utils.dependencies import get_current_user
 from utils.jwt_handler import create_access_token
 from utils.security import verify_password
 from pydantic import BaseModel
@@ -34,3 +35,17 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
+def get_current_user_data(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.phone == user["sub"]).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    return {
+        "nickname": db_user.nickname,
+        "first_name": db_user.first_name,
+        "last_name": db_user.last_name,
+        "phone": db_user.phone,
+        "wallet_address": db_user.wallet_address
+    }
