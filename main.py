@@ -25,7 +25,7 @@ app.include_router(register_router, prefix="/user", tags=["User"])
 app.include_router(auth_router, prefix="/user", tags=["Auth"])
 app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 app.include_router(poll_router, prefix="/polls", tags=["Polls"])
-app.include_router(vote_router, prefix="/vote", tags=["Votes"])
+app.include_router(vote_router, prefix="/vote", tags=["Vote"])
 
 if __name__ == "__main__":
     import uvicorn

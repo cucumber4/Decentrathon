@@ -1,23 +1,23 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Register from "./pages/Register";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-
-
+import CreatePoll from "./pages/CreatePoll";
+import Vote from "./pages/Vote";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
     return (
         <Router>
-            <div>
-                <h1>Decentralized Voting</h1>
-                <Routes>
-                    <Route path="/" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                
-                </Routes>
-            </div>
+            <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/create-poll" element={<CreatePoll />} />
+                <Route path="/vote" element={<Vote />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+            </Routes>
         </Router>
     );
 }
