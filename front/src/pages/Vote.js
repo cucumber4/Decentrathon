@@ -8,6 +8,32 @@ const Vote = () => {
     const [selectedCandidate, setSelectedCandidate] = useState("");
     const [message, setMessage] = useState("");
 
+    const TOKEN_ADDRESS = "0x024b770fd5E43258363651B5545efbf080d0775F"; // 🔴 Укажи адрес AGA-токена
+    const VOTING_CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9";
+    const TOKEN_ABI = [ 
+        // 🔴 Добавь ABI токена (нужно только `approve` и `allowance`)
+        {
+            "constant": false,
+            "inputs": [
+                { "name": "spender", "type": "address" },
+                { "name": "amount", "type": "uint256" }
+            ],
+            "name": "approve",
+            "outputs": [{ "name": "", "type": "bool" }],
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                { "name": "owner", "type": "address" },
+                { "name": "spender", "type": "address" }
+            ],
+            "name": "allowance",
+            "outputs": [{ "name": "", "type": "uint256" }],
+            "type": "function"
+        }
+    ];
+
     useEffect(() => {
         fetchPolls();
     }, []);
@@ -38,6 +64,21 @@ const Vote = () => {
         const userAddress = await signer.getAddress();
 
         try {
+            const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
+            
+            // 🔴 Проверяем `allowance`
+            const allowance = await tokenContract.allowance(userAddress, VOTING_CONTRACT_ADDRESS);
+            console.log(`Allowance: ${ethers.formatUnits(allowance, 18)} AGA`);
+
+            if (allowance < ethers.parseUnits("10", 18)) {
+                setMessage("Выполняем approve на 10 AGA...");
+                
+                const approveTx = await tokenContract.approve(VOTING_CONTRACT_ADDRESS, ethers.parseUnits("10", 18));
+                await approveTx.wait();
+                
+                setMessage("Approve выполнен! Теперь отправляем голос.");
+            }
+
             // 🔴 Запрос "сырой" транзакции с сервера
             const response = await axios.post(
                 `http://127.0.0.1:8000/vote/${selectedPoll}/${selectedCandidate}`,
