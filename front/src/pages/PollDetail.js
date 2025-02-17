@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ethers } from "ethers";
+import { useParams, useNavigate } from "react-router-dom";
 
-const Vote = () => {
-    const [polls, setPolls] = useState([]);
+const PollDetail = () => {
+    const { pollId } = useParams();           // Получаем ID из URL
+    const [poll, setPoll] = useState(null);   // Текущее голосование
     const [message, setMessage] = useState("");
-    const [isHover, setIsHover] = useState(null); // Хранит индекс кликнутой кнопки (или null)
-    
-    // Адреса контракта и токена (AGA)
+    const [hoveredCandidate, setHoveredCandidate] = useState(null);
+    const navigate = useNavigate();
+
     const TOKEN_ADDRESS = "0x024b770fd5E43258363651B5545efbf080d0775F";
     const VOTING_CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9";
-
-    // Минимум из ABI: approve/allowance
     const TOKEN_ABI = [
         {
             "constant": false,
@@ -46,25 +46,30 @@ const Vote = () => {
         };
     }, []);
 
-    // Загружаем список голосований
+    // Загружаем детали одного голосования
     useEffect(() => {
-        fetchPolls();
+        fetchPollDetail();
     }, []);
 
-    async function fetchPolls() {
+    async function fetchPollDetail() {
         try {
-            const response = await axios.get("http://127.0.0.1:8000/polls/list/");
-            setPolls(response.data);
+            const pollsResponse = await axios.get("http://127.0.0.1:8000/polls/list/");
+            const allPolls = pollsResponse.data;
+            const foundPoll = allPolls.find((p) => p.id == pollId);
+            if (!foundPoll) {
+                setMessage("Голосование не найдено!");
+                return;
+            }
+            setPoll(foundPoll);
         } catch (error) {
-            console.error("Ошибка загрузки голосований:", error);
-            setMessage("Ошибка загрузки голосований.");
+            console.error("Ошибка загрузки голосования:", error);
+            setMessage("Ошибка загрузки голосования.");
         }
     }
 
-    // Функция голосования
-    async function vote(pollId, candidate) {
+    async function vote(candidate) {
         if (!pollId || !candidate) {
-            alert("Пожалуйста, выберите голосование и кандидата!");
+            alert("Выберите голосование и кандидата!");
             return;
         }
 
@@ -83,7 +88,6 @@ const Vote = () => {
             const allowance = await tokenContract.allowance(userAddress, VOTING_CONTRACT_ADDRESS);
             console.log(`Allowance: ${ethers.formatUnits(allowance, 18)} AGA`);
 
-            // Если allowance < 10 токенов, делаем approve
             if (allowance < ethers.parseUnits("10", 18)) {
                 setMessage("Выполняем approve на 10 AGA...");
                 const approveTx = await tokenContract.approve(VOTING_CONTRACT_ADDRESS, ethers.parseUnits("10", 18));
@@ -115,13 +119,14 @@ const Vote = () => {
             });
 
             setMessage(`Голос отправлен! Транзакция: ${tx.hash}`);
+
         } catch (error) {
             console.error("Ошибка при голосовании:", error);
             setMessage(`Ошибка при голосовании: ${error.response?.data?.detail || "Неизвестная ошибка"}`);
         }
     }
 
-    // 🔹 Стили (аналогичные прошлым страницам)
+    // Стили
     const pageStyle = {
         minHeight: "100vh",
         margin: 0,
@@ -134,7 +139,7 @@ const Vote = () => {
     };
 
     const containerStyle = {
-        width: "800px",
+        width: "650px",
         padding: "30px",
         borderRadius: "8px",
         backgroundColor: "rgba(30, 30, 47, 0.9)",
@@ -154,28 +159,8 @@ const Vote = () => {
         textShadow: "0 0 5px rgba(0,255,194,0.4)",
     };
 
-    const pollsWrapperStyle = {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "16px",
-        justifyContent: "center",
-    };
-
-    const pollCardStyle = {
-        width: "250px",
-        backgroundColor: "#2C2C3A",
-        padding: "16px",
-        borderRadius: "8px",
-        border: "1px solid #444",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-        transition: "background-color 0.2s ease",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-    };
-
-    const pollTitleStyle = {
-        fontSize: "1rem",
+    const pollNameStyle = {
+        fontSize: "1.2rem",
         fontWeight: 600,
         marginBottom: "10px",
     };
@@ -187,7 +172,7 @@ const Vote = () => {
     };
 
     const candidateButtonStyle = {
-        padding: "8px",
+        padding: "12px",
         borderRadius: "6px",
         border: "none",
         backgroundColor: "#00FFC2",
@@ -211,51 +196,46 @@ const Vote = () => {
         padding: "10px",
         borderRadius: "6px",
     };
-
-    // Локальный хук для ховера на кнопке кандидата
-    const [hoveredCandidate, setHoveredCandidate] = useState(null); // {pollId, candidate} или null
+    
+    if (!poll) {
+        return (
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <h2 style={headerStyle}>Загрузка...</h2>
+                    {message && <p style={messageStyle}>{message}</p>}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
-                <h1 style={headerStyle}>Голосование</h1>
-
-                {polls.length === 0 ? (
-                    <p>Нет доступных голосований.</p>
-                ) : (
-                    <div style={pollsWrapperStyle}>
-                        {polls.map((poll) => (
-                            <div key={poll.id} style={pollCardStyle}>
-                                <div style={pollTitleStyle}>{poll.name}</div>
-                                <div style={candidatesListStyle}>
-                                    {poll.candidates.map((candidate) => {
-                                        const isHovering = hoveredCandidate?.pollId === poll.id
-                                            && hoveredCandidate?.candidate === candidate;
-                                        return (
-                                            <button
-                                                key={candidate}
-                                                style={{
-                                                    ...candidateButtonStyle,
-                                                    ...(isHovering ? candidateButtonHover : {})
-                                                }}
-                                                onMouseEnter={() => setHoveredCandidate({pollId: poll.id, candidate })}
-                                                onMouseLeave={() => setHoveredCandidate(null)}
-                                                onClick={() => vote(poll.id, candidate)}
-                                            >
-                                                {candidate}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
+                <h2 style={headerStyle}>Голосование</h2>
+                <div style={pollNameStyle}>{poll.name}</div>
+                <div style={candidatesListStyle}>
+                    {poll.candidates.map((candidate) => {
+                        const isHovering = hoveredCandidate === candidate;
+                        return (
+                            <button
+                                key={candidate}
+                                style={{
+                                    ...candidateButtonStyle,
+                                    ...(isHovering ? candidateButtonHover : {})
+                                }}
+                                onMouseEnter={() => setHoveredCandidate(candidate)}
+                                onMouseLeave={() => setHoveredCandidate(null)}
+                                onClick={() => vote(poll.id, candidate)}
+                            >
+                                {candidate}
+                            </button>
+                        );
+                    })}
+                </div>
                 {message && <p style={messageStyle}>{message}</p>}
             </div>
         </div>
     );
 };
 
-export default Vote;
+export default PollDetail;

@@ -239,7 +239,7 @@ def get_valid_nonce(wallet_address):
         time.sleep(2)  # Ждем 2 секунды
 
 
-# Pydantic-модель для создания голосования
+# Pydantic-модель
 class PollCreate(BaseModel):
     name: str
     candidates: list[str]

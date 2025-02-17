@@ -4,7 +4,23 @@ import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
     const [user, setUser] = useState(null);
+    const [message, setMessage] = useState("");
+    const [hoverLogout, setHoverLogout] = useState(false);
+    const [hoverVote, setHoverVote] = useState(false);
+    const [hoverResults, setHoverResults] = useState(false);
+
     const navigate = useNavigate();
+
+    // Подключаем Google Font (Montserrat)
+    useEffect(() => {
+        const link = document.createElement("link");
+        link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -21,30 +37,155 @@ const Dashboard = () => {
                 setUser(response.data);
             } catch (error) {
                 console.error("Ошибка загрузки пользователя:", error);
-                localStorage.removeItem("token"); // Удаляем токен, если недействителен
-                navigate("/"); // Перенаправление на логин
+                setMessage("Ошибка загрузки пользователя.");
+                localStorage.removeItem("token");
+                navigate("/");
             }
         };
 
         fetchUserData();
     }, [navigate]);
 
+    // 🔹 Стили (сохраняем общую стилистику)
+    const pageStyle = {
+        minHeight: "100vh",
+        margin: 0,
+        padding: 0,
+        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', sans-serif",
+    };
+
+    const containerStyle = {
+        width: "480px",
+        padding: "30px",
+        borderRadius: "8px",
+        backgroundColor: "rgba(30, 30, 47, 0.9)", // Полупрозрачный контейнер
+        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+        color: "#FFFFFF",
+    };
+
+    const headerStyle = {
+        marginBottom: "20px",
+        textAlign: "center",
+        color: "#00FFC2",
+        fontSize: "1.5rem",
+        fontWeight: 600,
+        textShadow: "0 0 5px rgba(0,255,194,0.4)",
+    };
+
+    const userInfoStyle = {
+        marginBottom: "20px",
+        lineHeight: "1.6",
+    };
+
+    const buttonContainerStyle = {
+        display: "flex",
+        gap: "10px",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        marginTop: "20px",
+    };
+
+    const buttonStyle = {
+        padding: "10px 16px",
+        borderRadius: "6px",
+        border: "none",
+        backgroundColor: "#00FFC2",
+        color: "#000",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "background-color 0.2s ease",
+    };
+
+    const buttonHover = {
+        backgroundColor: "#00E6AE",
+    };
+
+    const messageStyle = {
+        marginTop: "15px",
+        textAlign: "center",
+        fontSize: "0.95rem",
+        backgroundColor: "#2C2C3A",
+        padding: "10px",
+        borderRadius: "6px",
+    };
+
+    // Функции для навигации по кнопкам
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        navigate("/");
+    };
+
+    const handleGoToVote = () => {
+        navigate("/polls");
+    };
+
+    const handleGoToResults = () => {
+        navigate("/results");
+    };
+
     return (
-        <div style={{ maxWidth: "600px", margin: "auto", padding: "20px", border: "1px solid #ccc", borderRadius: "10px" }}>
-            <h2>Добро пожаловать!</h2>
-            {user ? (
-                <div>
-                    <p><strong>Имя:</strong> {user.first_name} {user.last_name}</p>
-                    <p><strong>Телефон:</strong> {user.phone}</p>
-                    <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
-                    <button onClick={() => {
-                        localStorage.removeItem("token");
-                        navigate("/");
-                    }}>Выйти</button>
-                </div>
-            ) : (
-                <p>Загрузка...</p>
-            )}
+        <div style={pageStyle}>
+            <div style={containerStyle}>
+                <h2 style={headerStyle}>Добро пожаловать!</h2>
+                {user ? (
+                    <>
+                        <div style={userInfoStyle}>
+                            <p><strong>Имя:</strong> {user.first_name} {user.last_name}</p>
+                            <p><strong>Телефон:</strong> {user.phone}</p>
+                            <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
+                        </div>
+                        <div style={buttonContainerStyle}>
+
+                            {/* Кнопка "Перейти к голосованию" */}
+                            <button
+                                onClick={handleGoToVote}
+                                style={{
+                                    ...buttonStyle,
+                                    ...(hoverVote ? buttonHover : {})
+                                }}
+                                onMouseEnter={() => setHoverVote(true)}
+                                onMouseLeave={() => setHoverVote(false)}
+                            >
+                                Перейти к голосованию
+                            </button>
+
+                            {/* Кнопка "Посмотреть результаты" */}
+                            <button
+                                onClick={handleGoToResults}
+                                style={{
+                                    ...buttonStyle,
+                                    ...(hoverResults ? buttonHover : {})
+                                }}
+                                onMouseEnter={() => setHoverResults(true)}
+                                onMouseLeave={() => setHoverResults(false)}
+                            >
+                                Посмотреть результаты
+                            </button>
+
+                            {/* Кнопка "Выйти" */}
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    ...buttonStyle,
+                                    ...(hoverLogout ? buttonHover : {})
+                                }}
+                                onMouseEnter={() => setHoverLogout(true)}
+                                onMouseLeave={() => setHoverLogout(false)}
+                            >
+                                Выйти
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <p>Загрузка...</p>
+                )}
+
+                {message && <p style={messageStyle}>{message}</p>}
+            </div>
         </div>
     );
 };

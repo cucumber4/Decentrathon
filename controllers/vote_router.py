@@ -224,7 +224,6 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
     # ✅ 1. Получаем актуальный nonce
     nonce = web3.eth.get_transaction_count(user_address, "latest")
 
-    # ✅ 2. Проверяем баланс пользователя
     balance = web3.eth.get_balance(user_address)
     gas_price = web3.eth.gas_price
     estimated_gas = 200000
@@ -234,7 +233,6 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
         raise HTTPException(status_code=400, detail="Недостаточно средств на газ!")
 
     try:
-        # ✅ 3. Строим транзакцию с правильным nonce
         tx = voting_contract.functions.vote(poll_id, candidate).build_transaction({
             'from': user_address,
             'gas': estimated_gas,
@@ -246,3 +244,9 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при создании транзакции: {str(e)}")
+
+
+@router.get("/{poll_id}/{candidate}")  # Без "votes" в пути
+def get_votes(poll_id: int, candidate: str):
+    votes = voting_contract.functions.getResult(poll_id, candidate).call()
+    return {"poll_id": poll_id, "candidate": candidate, "votes": votes}
