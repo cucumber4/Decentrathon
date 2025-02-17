@@ -8,7 +8,8 @@ const Login = () => {
         password: "",
     });
     const [message, setMessage] = useState("");
-    const [isHover, setIsHover] = useState(false);
+    const [isHoverLogin, setIsHoverLogin] = useState(false);
+    const [isHoverRegister, setIsHoverRegister] = useState(false);
     const navigate = useNavigate(); // Используем useNavigate для редиректа
 
     // Подключаем Google Font (Montserrat)
@@ -64,6 +65,9 @@ const Login = () => {
         backgroundColor: "rgba(30, 30, 47, 0.9)", // Полупрозрачный контейнер
         boxShadow: "0 0 10px rgba(0,0,0,0.3)",
         color: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
     };
 
     const headerStyle = {
@@ -91,6 +95,14 @@ const Login = () => {
         fontSize: "0.95rem",
     };
 
+    // ✅ Меняем расположение кнопок на “столбик”
+    const buttonContainerStyle = {
+        display: "flex",
+        flexDirection: "column",  // колоночное расположение
+        gap: "10px",
+        marginTop: "8px",
+    };
+
     const buttonStyle = {
         padding: "12px",
         borderRadius: "6px",
@@ -113,6 +125,11 @@ const Login = () => {
         backgroundColor: "#2C2C3A",
         padding: "10px",
         borderRadius: "6px",
+    };
+
+    // Кнопка "Зарегистрироваться"
+    const handleRegisterClick = () => {
+        navigate("/register");
     };
 
     return (
@@ -138,17 +155,31 @@ const Login = () => {
                         onChange={handleChange}
                         required
                     />
-                    <button
-                        type="submit"
-                        style={{
-                            ...buttonStyle,
-                            ...(isHover ? buttonHover : {})
-                        }}
-                        onMouseEnter={() => setIsHover(true)}
-                        onMouseLeave={() => setIsHover(false)}
-                    >
-                        Войти
-                    </button>
+                    <div style={buttonContainerStyle}>
+                        <button
+                            type="submit"
+                            style={{
+                                ...buttonStyle,
+                                ...(isHoverLogin ? buttonHover : {})
+                            }}
+                            onMouseEnter={() => setIsHoverLogin(true)}
+                            onMouseLeave={() => setIsHoverLogin(false)}
+                        >
+                            Войти
+                        </button>
+                        <button
+                            type="button"
+                            style={{
+                                ...buttonStyle,
+                                ...(isHoverRegister ? buttonHover : {})
+                            }}
+                            onMouseEnter={() => setIsHoverRegister(true)}
+                            onMouseLeave={() => setIsHoverRegister(false)}
+                            onClick={handleRegisterClick}
+                        >
+                            Регистрация
+                        </button>
+                    </div>
                 </form>
                 {message && <p style={messageStyle}>{message}</p>}
             </div>
