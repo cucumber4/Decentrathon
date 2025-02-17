@@ -372,3 +372,30 @@ def close_poll(poll_id: int, user: dict = Depends(is_admin)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка закрытия голосования: {str(e)}")
+
+
+@router.get("/list/onchain/active")
+def get_polls_onchain():
+    try:
+        poll_count = contract.functions.pollCount().call()
+        polls = []
+
+        for i in range(poll_count):
+            poll_info = contract.functions.polls(i).call()
+            poll_name = poll_info[0]
+            poll_active = poll_info[1]
+
+            # Фильтруем только активные
+            if poll_active:
+                polls.append({
+                    "id": i,
+                    "name": poll_name,
+                    "active": poll_active
+                })
+
+        return polls
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка получения голосований: {str(e)}"
+        )

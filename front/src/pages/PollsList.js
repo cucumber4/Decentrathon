@@ -26,7 +26,7 @@ const PollsList = () => {
 
     async function fetchPolls() {
         try {
-            const response = await axios.get("http://127.0.0.1:8000/polls/list/");
+            const response = await axios.get("http://127.0.0.1:8000/polls/list/onchain/active");
             setPolls(response.data);
         } catch (error) {
             console.error("Ошибка загрузки голосований:", error);
