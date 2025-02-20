@@ -135,7 +135,7 @@ const Dashboard = () => {
                     <>
                         <div style={userInfoStyle}>
                             <p><strong>Имя:</strong> {user.first_name} {user.last_name}</p>
-                            <p><strong>Телефон:</strong> {user.phone}</p>
+                            <p><strong>Адрес почты:</strong> {user.email}</p>
                             <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
                         </div>
                         <div style={buttonContainerStyle}>

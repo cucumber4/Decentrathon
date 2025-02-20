@@ -7,7 +7,7 @@ const Register = () => {
         nickname: "",
         first_name: "",
         last_name: "",
-        phone: "",
+        email: "",
         wallet_address: "",
         password: "",
         confirm_password: ""
@@ -167,9 +167,9 @@ const Register = () => {
                     <input
                         style={inputStyle}
                         type="tel"
-                        name="phone"
-                        placeholder="Номер телефона"
-                        value={formData.phone}
+                        name="email"
+                        placeholder="Адрес почты"
+                        value={formData.email}
                         onChange={handleChange}
                         required
                     />

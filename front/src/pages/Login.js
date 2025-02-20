@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        phone: "",
+        email: "",
         password: "",
     });
     const [message, setMessage] = useState("");
@@ -140,9 +140,9 @@ const Login = () => {
                     <input
                         style={inputStyle}
                         type="tel"
-                        name="phone"
-                        placeholder="Номер телефона"
-                        value={formData.phone}
+                        name="email"
+                        placeholder="Адрес почты"
+                        value={formData.email}
                         onChange={handleChange}
                         required
                     />

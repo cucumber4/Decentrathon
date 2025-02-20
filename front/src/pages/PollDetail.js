@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { useParams, useNavigate } from "react-router-dom";
 
 const PollDetail = () => {
-    const { pollId } = useParams();           // Получаем ID из URL
+    const { pollId } = useParams();           // Получаем ID из URL для загрузки данных (не для голосования!)
     const [poll, setPoll] = useState(null);   // Текущее голосование
     const [message, setMessage] = useState("");
     const [hoveredCandidate, setHoveredCandidate] = useState(null);
@@ -35,6 +35,11 @@ const PollDetail = () => {
         }
     ];
 
+    // Пример отображения кандидатов: если в данных хранится число, то используем маппинг.
+    const candidateMapping = {
+        0: "",
+    };
+
     // Подключаем Montserrat
     useEffect(() => {
         const link = document.createElement("link");
@@ -46,7 +51,7 @@ const PollDetail = () => {
         };
     }, []);
 
-    // Загружаем детали одного голосования
+    // Загружаем детали одного голосования (из базы)
     useEffect(() => {
         fetchPollDetail();
     }, []);
@@ -68,8 +73,8 @@ const PollDetail = () => {
     }
 
     async function vote(candidate) {
-        if (!pollId || !candidate) {
-            alert("Выберите голосование и кандидата!");
+        if (!poll || !candidate) {
+            alert("Выберите кандидата!");
             return;
         }
 
@@ -95,7 +100,7 @@ const PollDetail = () => {
                 setMessage("Approve выполнен! Теперь отправляем голос.");
             }
 
-            // Запрос на сервер для получения "сырой" транзакции
+            // Отправляем запрос на сервер для получения "сырой" транзакции
             const response = await axios.post(
                 `http://127.0.0.1:8000/votes/${pollId}/${candidate}`,
                 {},
@@ -119,7 +124,6 @@ const PollDetail = () => {
             });
 
             setMessage(`Голос отправлен! Транзакция: ${tx.hash}`);
-
         } catch (error) {
             console.error("Ошибка при голосовании:", error);
             setMessage(`Ошибка при голосовании: ${error.response?.data?.detail || "Неизвестная ошибка"}`);
@@ -196,7 +200,7 @@ const PollDetail = () => {
         padding: "10px",
         borderRadius: "6px",
     };
-    
+
     if (!poll) {
         return (
             <div style={pageStyle}>
@@ -215,7 +219,10 @@ const PollDetail = () => {
                 <div style={pollNameStyle}>{poll.name}</div>
                 <div style={candidatesListStyle}>
                     {poll.candidates.map((candidate) => {
-                        const isHovering = hoveredCandidate === candidate;
+                        // Если кандидат хранится как число, используем mapping
+                        const candidateName = typeof candidate === "number" ? 
+                            (candidateMapping[candidate] || candidate.toString()) : candidate;
+                        const isHovering = hoveredCandidate === candidateName;
                         return (
                             <button
                                 key={candidate}
@@ -223,11 +230,11 @@ const PollDetail = () => {
                                     ...candidateButtonStyle,
                                     ...(isHovering ? candidateButtonHover : {})
                                 }}
-                                onMouseEnter={() => setHoveredCandidate(candidate)}
+                                onMouseEnter={() => setHoveredCandidate(candidateName)}
                                 onMouseLeave={() => setHoveredCandidate(null)}
-                                onClick={() => vote(poll.id, candidate)}
+                                onClick={() => vote(candidateName)}
                             >
-                                {candidate}
+                                {candidateName}
                             </button>
                         );
                     })}

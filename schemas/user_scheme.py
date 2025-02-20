@@ -13,7 +13,7 @@ class User(GlobalBase):
     nickname = Column(String, unique=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    phone = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)  # Пароли должны быть захешированы!
     wallet_address = Column(String, unique=True, nullable=False)
     role = Column(Enum(RoleEnum), default=RoleEnum.user, nullable=False)  # ✅ Добавляем роль

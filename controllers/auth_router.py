@@ -17,12 +17,12 @@ def get_db():
         db.close()
 
 class UserLogin(BaseModel):
-    phone: str
+    email: str
     password: str
 
 @router.post("/login")
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.phone == user.phone).first()
+    db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Пользователь не найден")
 
@@ -31,14 +31,14 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
 
     # ✅ Добавляем wallet_address в токен
     access_token = create_access_token(
-        data={"sub": db_user.phone, "role": db_user.role, "wallet_address": db_user.wallet_address}
+        data={"sub": db_user.email, "role": db_user.role, "wallet_address": db_user.wallet_address}
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me")
 def get_current_user_data(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.phone == user["sub"]).first()
+    db_user = db.query(User).filter(User.email == user["sub"]).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
@@ -46,6 +46,6 @@ def get_current_user_data(user: dict = Depends(get_current_user), db: Session = 
         "nickname": db_user.nickname,
         "first_name": db_user.first_name,
         "last_name": db_user.last_name,
-        "phone": db_user.phone,
+        "email": db_user.email,
         "wallet_address": db_user.wallet_address
     }

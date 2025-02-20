@@ -45,7 +45,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         nickname=user.nickname,
         first_name=user.first_name,
         last_name=user.last_name,
-        phone=user.phone,
+        email=user.email,
         password=hashed_password,
         wallet_address=user.wallet_address
     )

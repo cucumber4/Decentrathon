@@ -6,8 +6,8 @@ from transaction_count import CREATOR_ADDRESS, PRIVATE_KEY
 web3 = Web3(Web3.HTTPProvider("https://sepolia.infura.io/v3/cbfec6723c0b4264b5b3dcf5cba569e9"))
 
 #Данные аккаунта
-account = "0xa21356475F98ABF66Fc39D390325e4002b75AEC4"
-private_key = "b4cec174d98688e762355891cbc52759bf5996cb7b47057d1b151b68e9454209"
+account = "0x30dee139d103b538E9824e7F8Bd2aFA176e5e2Ad"
+private_key = "800a10888524d269e63e8a8d09004edf8560e08f011313e1243c363ea6ceb8cd"
 
 #Получаем текущий nonce
 nonce = web3.eth.get_transaction_count(account, "pending")
