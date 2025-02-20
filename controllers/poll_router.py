@@ -220,7 +220,7 @@ TOKEN_ABI =[
         "stateMutability": "nonpayable",
         "type": "function"
     }
-] # Замените на ABI контракта
+] # ABI контракта
 
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=TOKEN_ABI)
 
