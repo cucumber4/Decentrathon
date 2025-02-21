@@ -1,0 +1,22 @@
+-- Создаём тип ENUM для ролей пользователей
+CREATE TYPE role_enum AS ENUM ('user', 'admin');
+
+-- Таблица пользователей
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    nickname VARCHAR(255) NOT NULL UNIQUE,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    wallet_address VARCHAR(255) NOT NULL UNIQUE,
+    role role_enum NOT NULL DEFAULT 'user'
+);
+
+-- Таблица голосований
+CREATE TABLE polls (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    candidates TEXT[] NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT true
+);
