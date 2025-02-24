@@ -8,6 +8,7 @@ const Dashboard = () => {
     const [hoverLogout, setHoverLogout] = useState(false);
     const [hoverVote, setHoverVote] = useState(false);
     const [hoverResults, setHoverResults] = useState(false);
+    const [agaBalance, setAgaBalance] = useState(null); // Баланс AGA токенов
 
     const navigate = useNavigate();
 
@@ -35,6 +36,8 @@ const Dashboard = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(response.data);
+                const balanceResponse = await axios.get(`http://127.0.0.1:8000/user/balance/${response.data.wallet_address}`);
+                setAgaBalance(balanceResponse.data.balance); // Устанавливаем баланс в стейт
             } catch (error) {
                 console.error("Ошибка загрузки пользователя:", error);
                 setMessage("Ошибка загрузки пользователя.");
@@ -137,6 +140,7 @@ const Dashboard = () => {
                             <p><strong>Имя:</strong> {user.first_name} {user.last_name}</p>
                             <p><strong>Адрес почты:</strong> {user.email}</p>
                             <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
+                            <p><strong>Баланс AGA:</strong> {agaBalance !== null ? `${agaBalance} AGA` : "Загрузка..."}</p>
                         </div>
                         <div style={buttonContainerStyle}>
 

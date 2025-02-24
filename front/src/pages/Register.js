@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-    // Основные данные + confirm_password
+    const [step, setStep] = useState(1); // 1 - регистрация, 2 - подтверждение кода
     const [formData, setFormData] = useState({
         nickname: "",
         first_name: "",
@@ -12,46 +13,10 @@ const Register = () => {
         password: "",
         confirm_password: ""
     });
-
+    const [verificationCode, setVerificationCode] = useState("");
     const [message, setMessage] = useState("");
-    const [isHover, setIsHover] = useState(false);
-    const [disableSubmit, setDisableSubmit] = useState(false);
+    const navigate = useNavigate();
 
-    // 🔹 При каждом вводе проверяем совпадение паролей
-    useEffect(() => {
-        if (formData.password && formData.confirm_password) {
-            setDisableSubmit(formData.password !== formData.confirm_password);
-        } else {
-            setDisableSubmit(false);
-        }
-    }, [formData.password, formData.confirm_password]);
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        // Если пароли не совпадают, прерываем отправку
-        if (formData.password !== formData.confirm_password) {
-            setMessage("Пароли не совпадают!");
-            return;
-        }
-        try {
-            const { confirm_password, ...payload } = formData; // confirm_password не отправляем на бэкенд
-            const response = await axios.post("http://127.0.0.1:8000/user/register", payload, {
-                headers: { "Content-Type": "application/json" }
-            });
-            setMessage("Регистрация успешна!");
-            console.log("Успех:", response.data);
-        } catch (error) {
-            setMessage("Ошибка регистрации: " + (error.response?.data?.detail || "Неизвестная ошибка"));
-            console.error("Ошибка регистрации:", error.response?.data);
-        }
-    };
-
-    // 🔹 Подключим Google Font (Montserrat) через inline-стиль
-    // Обычно это делают в index.html, но для демонстрации можно так:
     useEffect(() => {
         const link = document.createElement("link");
         link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
@@ -62,12 +27,68 @@ const Register = () => {
         };
     }, []);
 
-    // 🔹 Стили фона и общие
+    useEffect(() => {
+        if (formData.password && formData.confirm_password) {
+            if (formData.password !== formData.confirm_password) {
+                setMessage("Пароли не совпадают!");
+            } else {
+                setMessage("");
+            }
+        }
+    }, [formData.password, formData.confirm_password]);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleVerificationChange = (e) => {
+        setVerificationCode(e.target.value);
+    };
+
+    const handleSubmitRegistration = async (e) => {
+        e.preventDefault();
+        if (formData.password !== formData.confirm_password) {
+            setMessage("Пароли не совпадают!");
+            return;
+        }
+        try {
+            const { confirm_password, ...payload } = formData;
+            const response = await axios.post("http://127.0.0.1:8000/user/register", payload, {
+                headers: { "Content-Type": "application/json" }
+            });
+            setMessage(response.data.message);
+            // Переходим ко второму шагу для ввода кода
+            setStep(2);
+        } catch (error) {
+            setMessage("Ошибка регистрации: " + (error.response?.data?.detail || "Неизвестная ошибка"));
+            console.error("Ошибка регистрации:", error.response?.data);
+        }
+    };
+
+    const handleSubmitVerification = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post("http://127.0.0.1:8000/user/verify", {
+                email: formData.email,
+                code: verificationCode
+            }, {
+                headers: { "Content-Type": "application/json" }
+            });
+            setMessage(response.data.message);
+            // После подтверждения можно перенаправить пользователя, например, на логин или дашборд
+            setTimeout(() => navigate("/"), 1500);
+        } catch (error) {
+            setMessage("Ошибка верификации: " + (error.response?.data?.detail || "Неизвестная ошибка"));
+            console.error("Ошибка верификации:", error.response?.data);
+        }
+    };
+
+    // Стили (аналогичные предыдущим)
     const pageStyle = {
         minHeight: "100vh",
         margin: 0,
         padding: 0,
-        background: "radial-gradient(circle at top, #222 0%, #111 100%)",  // Тёмный градиент
+        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -78,9 +99,12 @@ const Register = () => {
         width: "420px",
         padding: "30px",
         borderRadius: "8px",
-        backgroundColor: "rgba(30, 30, 47, 0.9)", // Полупрозрачный контейнер
+        backgroundColor: "rgba(30, 30, 47, 0.9)",
         boxShadow: "0 0 10px rgba(0,0,0,0.3)",
         color: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
     };
 
     const headerStyle = {
@@ -112,15 +136,11 @@ const Register = () => {
         padding: "12px",
         borderRadius: "6px",
         border: "none",
-        backgroundColor: disableSubmit ? "#555" : "#00FFC2",
+        backgroundColor: "#00FFC2",
         color: "#000",
         fontWeight: 600,
-        cursor: disableSubmit ? "not-allowed" : "pointer",
+        cursor: "pointer",
         transition: "background-color 0.2s ease",
-    };
-
-    const buttonHover = {
-        backgroundColor: disableSubmit ? "#555" : "#00E6AE",
     };
 
     const messageStyle = {
@@ -135,85 +155,95 @@ const Register = () => {
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
-                <h2 style={headerStyle}>Регистрация</h2>
-                <form onSubmit={handleSubmit} style={formStyle}>
-                    <input
-                        style={inputStyle}
-                        type="text"
-                        name="nickname"
-                        placeholder="Никнейм"
-                        value={formData.nickname}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="text"
-                        name="first_name"
-                        placeholder="Имя"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="text"
-                        name="last_name"
-                        placeholder="Фамилия"
-                        value={formData.last_name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="tel"
-                        name="email"
-                        placeholder="Адрес почты"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="text"
-                        name="wallet_address"
-                        placeholder="Адрес кошелька"
-                        value={formData.wallet_address}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="password"
-                        name="password"
-                        placeholder="Пароль"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        style={inputStyle}
-                        type="password"
-                        name="confirm_password"
-                        placeholder="Подтвердите пароль"
-                        value={formData.confirm_password}
-                        onChange={handleChange}
-                        required
-                    />
-                    <button
-                        type="submit"
-                        style={{ 
-                            ...buttonStyle,
-                            ...(isHover ? buttonHover : {})
-                        }}
-                        onMouseEnter={() => setIsHover(true)}
-                        onMouseLeave={() => setIsHover(false)}
-                        disabled={disableSubmit}
-                    >
-                        Зарегистрироваться
-                    </button>
-                </form>
+                {step === 1 && (
+                    <>
+                        <h2 style={headerStyle}>Регистрация</h2>
+                        <form onSubmit={handleSubmitRegistration} style={formStyle}>
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                name="nickname"
+                                placeholder="Никнейм"
+                                value={formData.nickname}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                name="first_name"
+                                placeholder="Имя"
+                                value={formData.first_name}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                name="last_name"
+                                placeholder="Фамилия"
+                                value={formData.last_name}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="email"
+                                name="email"
+                                placeholder="Адрес почты"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                name="wallet_address"
+                                placeholder="Адрес кошелька"
+                                value={formData.wallet_address}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="password"
+                                name="password"
+                                placeholder="Пароль"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                            />
+                            <input
+                                style={inputStyle}
+                                type="password"
+                                name="confirm_password"
+                                placeholder="Подтвердите пароль"
+                                value={formData.confirm_password}
+                                onChange={handleChange}
+                                required
+                            />
+                            <button type="submit" style={buttonStyle}>Зарегистрироваться</button>
+                        </form>
+                    </>
+                )}
 
+                {step === 2 && (
+                    <>
+                        <h2 style={headerStyle}>Введите код подтверждения</h2>
+                        <form onSubmit={handleSubmitVerification} style={formStyle}>
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                name="code"
+                                placeholder="Код подтверждения"
+                                value={verificationCode}
+                                onChange={handleVerificationChange}
+                                required
+                            />
+                            <button type="submit" style={buttonStyle}>Подтвердить</button>
+                        </form>
+                    </>
+                )}
                 {message && <p style={messageStyle}>{message}</p>}
             </div>
         </div>

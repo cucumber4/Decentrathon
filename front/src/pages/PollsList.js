@@ -6,6 +6,7 @@ const PollsList = () => {
     const [polls, setPolls] = useState([]);
     const [message, setMessage] = useState("");
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [loading, setLoading] = useState(true); // Флаг загрузки данных
 
     const navigate = useNavigate();
 
@@ -21,18 +22,20 @@ const PollsList = () => {
     }, []);
 
     useEffect(() => {
+        async function fetchPolls() {
+            try {
+                const response = await axios.get("http://127.0.0.1:8000/polls/list/onchain/active");
+                setPolls(response.data);
+            } catch (error) {
+                console.error("Ошибка загрузки голосований:", error);
+                setMessage("Ошибка загрузки голосований.");
+            } finally {
+                setTimeout(() => setLoading(false), 1000); // ✅ Добавляем небольшую задержку (1 сек.)
+            }
+        }
+
         fetchPolls();
     }, []);
-
-    async function fetchPolls() {
-        try {
-            const response = await axios.get("http://127.0.0.1:8000/polls/list/onchain/active");
-            setPolls(response.data);
-        } catch (error) {
-            console.error("Ошибка загрузки голосований:", error);
-            setMessage("Ошибка загрузки голосований.");
-        }
-    }
 
     // При клике на голосование → переход на страницу деталей
     function handlePollClick(pollId) {
@@ -107,8 +110,11 @@ const PollsList = () => {
         <div style={pageStyle}>
             <div style={containerStyle}>
                 <h1 style={headerStyle}>Список голосований</h1>
-                {polls.length === 0 ? (
-                    <p>Нет доступных голосований.</p>
+
+                {loading ? (
+                    <p style={{ textAlign: "center" }}>Загрузка голосований...</p>
+                ) : polls.length === 0 ? (
+                    <p style={{ textAlign: "center" }}>Нет доступных голосований.</p>
                 ) : (
                     <ul style={pollsListStyle}>
                         {polls.map((poll, index) => {
@@ -116,9 +122,9 @@ const PollsList = () => {
                             return (
                                 <li
                                     key={poll.id}
-                                    style={{ 
+                                    style={{
                                         ...pollItemStyle,
-                                        ...(isHover ? pollItemHover : {})
+                                        ...(isHover ? pollItemHover : {}),
                                     }}
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onMouseLeave={() => setHoveredIndex(null)}
