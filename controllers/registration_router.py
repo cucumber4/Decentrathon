@@ -1,14 +1,15 @@
-from web3 import Web3
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from schemas.user_scheme import User
+from models.register_model import UserRegister  # Импортируйте Pydantic-схему
 from db import SessionLocal
-from models.user_model import UserCreate
+from schemas.user_scheme import User  # SQLAlchemy-модель для сохранения в БД
+from utils.email_sender import send_verification_email
 from utils.security import hash_password
-
+from web3 import Web3
+import string, random
 
 router = APIRouter()
-
 
 def get_db():
     db = SessionLocal()
@@ -16,7 +17,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 RPC_URL = "https://sepolia.infura.io/v3/cbfec6723c0b4264b5b3dcf5cba569e9"
 web3 = Web3(Web3.HTTPProvider(RPC_URL, {"timeout": 60}))
@@ -33,72 +33,60 @@ TOKEN_ABI = [
 
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=TOKEN_ABI)
 
+def generate_verification_code(length: int = 6) -> str:
+    return "".join(random.choices(string.digits, k=length))
+
+temp_registrations = {}
 
 @router.post("/register")
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
+def register_user(user: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # Если пользователь с таким email уже зарегистрирован – выдаём ошибку
     if db.query(User).filter(User.wallet_address == user.wallet_address).first():
         raise HTTPException(status_code=400, detail="Кошелек уже зарегистрирован")
 
-    hashed_password = hash_password(user.password)
+    # Генерируем код подтверждения
+    code = generate_verification_code()
 
+    # Сохраняем данные во временное хранилище (в реальном проекте используйте БД или Redis с TTL)
+    temp_registrations[user.email] = {"user_data": user.dict(), "code": code}
+
+    # Отправляем email в фоне
+    background_tasks.add_task(send_verification_email, user.email, code)
+
+    return {"message": "На вашу почту отправлен код подтверждения"}
+
+class VerificationData(BaseModel):
+    email: str
+    code: str
+
+@router.post("/verify")
+def verify_user(data: VerificationData, db: Session = Depends(get_db)):
+    record = temp_registrations.get(data.email)
+    if not record:
+        raise HTTPException(status_code=404, detail="Регистрация не найдена")
+    if record["code"] != data.code:
+        raise HTTPException(status_code=400, detail="Неверный код подтверждения")
+
+    # Создаем пользователя в постоянной базе данных
+    user_data = record["user_data"]
+    hashed_password = hash_password(user_data["password"])
     new_user = User(
-        nickname=user.nickname,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        email=user.email,
+        nickname=user_data["nickname"],
+        first_name=user_data["first_name"],
+        last_name=user_data["last_name"],
+        email=user_data["email"],
+        wallet_address=user_data["wallet_address"],
         password=hashed_password,
-        wallet_address=user.wallet_address
+        role="user"  # или другой дефолтный роль
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    # Начисление токенов через смарт-контракт
-    try:
-        # Получаем nonce для следующей транзакции
-        nonce = web3.eth.get_transaction_count(CREATOR_ADDRESS, "pending")  # Используем "pending"
-        gas_price = web3.eth.gas_price  # Текущая цена газа
+    # Удаляем временную запись
+    del temp_registrations[data.email]
 
-        # Увеличиваем gasPrice (на 10-20% выше текущего)
-        gas_price = int(gas_price * 1.1)
-
-        # Строим транзакцию
-        tx = contract.functions.transfer(user.wallet_address, 10 * 10 ** 18).build_transaction({
-            'from': CREATOR_ADDRESS,
-            'gas': 100000,
-            'gasPrice': int(gas_price * 1.1),
-            'nonce': nonce
-        })
-
-        pending_nonce = web3.eth.get_transaction_count(CREATOR_ADDRESS, "pending")
-        latest_nonce = web3.eth.get_transaction_count(CREATOR_ADDRESS, "latest")
-        print(f"Pending Nonce: {pending_nonce}, Latest Nonce: {latest_nonce}")
-
-        # Получаем баланс контракта в токенах
-        contract_balance = contract.functions.balanceOf(CREATOR_ADDRESS).call()
-        print(f"Баланс контракта: {Web3.from_wei(contract_balance, 'ether')} AGA")
-
-        # Получаем баланс эфира на счету для покрытия газа
-        balance_eth = web3.eth.get_balance(CREATOR_ADDRESS)  # Получить баланс в ETH
-        print(f"Баланс ETH: {Web3.from_wei(balance_eth, 'ether')} ETH")
-
-        # Оценка газа для транзакции
-        gas_estimate = contract.functions.transfer(user.wallet_address, 10 * 10 ** 18).estimate_gas({
-            'from': CREATOR_ADDRESS,
-        })
-        print(f"Ожидаемый газ: {gas_estimate}")
-
-        # Подписываем и отправляем транзакцию
-        signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
-        tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
-
-        return {"message": "Регистрация успешна", "tx_hash": web3.to_hex(tx_hash)}
-
-    except Exception as e:
-        db.delete(new_user)
-        db.commit()
-        raise HTTPException(status_code=500, detail=f"Ошибка при начислении токенов: {str(e)}")
-
+    return {"message": "Регистрация подтверждена"}
 
 @router.get("/balance/{wallet_address}")
 def get_balance(wallet_address: str):
