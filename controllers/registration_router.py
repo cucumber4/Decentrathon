@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from models.register_model import UserRegister  # Импортируйте Pydantic-схему
+from models.register_model import UserRegister  # Импорт Pydantic-схемы
 from db import SessionLocal
 from schemas.user_scheme import User  # SQLAlchemy-модель для сохранения в БД
 from utils.email_sender import send_verification_email
@@ -47,7 +47,7 @@ def register_user(user: UserRegister, background_tasks: BackgroundTasks, db: Ses
     # Генерируем код подтверждения
     code = generate_verification_code()
 
-    # Сохраняем данные во временное хранилище (в реальном проекте используйте БД или Redis с TTL)
+    # Сохраняем данные во временное хранилище
     temp_registrations[user.email] = {"user_data": user.dict(), "code": code}
 
     # Отправляем email в фоне
@@ -77,7 +77,7 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
         email=user_data["email"],
         wallet_address=user_data["wallet_address"],
         password=hashed_password,
-        role="user"  # или другой дефолтный роль
+        role="user"
     )
     db.add(new_user)
     db.commit()
@@ -86,7 +86,44 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
     # Удаляем временную запись
     del temp_registrations[data.email]
 
-    return {"message": "Регистрация подтверждена"}
+    # Начисление 10 AGA токенов новому пользователю
+    try:
+        nonce = web3.eth.get_transaction_count(CREATOR_ADDRESS, "pending")
+        gas_price = web3.eth.gas_price
+
+        # Увеличиваем gasPrice на 10% для ускорения транзакции
+        gas_price = int(gas_price * 1.1)
+
+        # Создаем транзакцию
+        tx = contract.functions.transfer(new_user.wallet_address, 10 * 10 ** 18).build_transaction({
+            'from': CREATOR_ADDRESS,
+            'gas': 100000,
+            'gasPrice': gas_price,
+            'nonce': nonce
+        })
+
+        # Проверка баланса контракта
+        contract_balance = contract.functions.balanceOf(CREATOR_ADDRESS).call()
+        print(f"Баланс контракта: {Web3.from_wei(contract_balance, 'ether')} AGA")
+
+        # Проверка ETH-баланса для оплаты газа
+        balance_eth = web3.eth.get_balance(CREATOR_ADDRESS)
+        print(f"Баланс ETH: {Web3.from_wei(balance_eth, 'ether')} ETH")
+
+        # Подписываем и отправляем транзакцию
+        signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+
+        return {
+            "message": "Регистрация подтверждена, 10 AGA начислены!",
+            "tx_hash": web3.to_hex(tx_hash)
+        }
+
+    except Exception as e:
+        # Откатываем создание пользователя, если произошла ошибка с токенами
+        db.delete(new_user)
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"Ошибка при начислении токенов: {str(e)}")
 
 @router.get("/balance/{wallet_address}")
 def get_balance(wallet_address: str):
