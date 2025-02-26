@@ -236,7 +236,7 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
         tx = voting_contract.functions.vote(poll_id, candidate).build_transaction({
             'from': user_address,
             'gas': estimated_gas,
-            'gasPrice': gas_price,
+            'gasPrice': gas_price * 1.5,
             'nonce': nonce  # ✅ Используем корректный nonce
         })
 

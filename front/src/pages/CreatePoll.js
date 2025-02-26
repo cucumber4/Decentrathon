@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +8,19 @@ const CreatePoll = () => {
         candidates: [""]
     });
     const [message, setMessage] = useState("");
+    const [hoverCreate, setHoverCreate] = useState(false);
+    const [hoverAdd, setHoverAdd] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const link = document.createElement("link");
+        link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, []);
 
     const handleChange = (e, index) => {
         const newCandidates = [...pollData.candidates];
@@ -60,34 +72,142 @@ const CreatePoll = () => {
         }
     };
 
+    // 🔹 Стили
+    const pageStyle = {
+        minHeight: "100vh",
+        margin: 0,
+        padding: 0,
+        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', sans-serif",
+    };
+
+    const containerStyle = {
+        width: "500px",
+        padding: "30px",
+        borderRadius: "8px",
+        backgroundColor: "rgba(30, 30, 47, 0.9)",
+        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+        color: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
+        gap: "15px",
+    };
+
+    const headerStyle = {
+        marginBottom: "10px",
+        textAlign: "center",
+        color: "#00FFC2",
+        fontSize: "1.5rem",
+        fontWeight: 600,
+        textShadow: "0 0 5px rgba(0,255,194,0.4)",
+    };
+
+    const inputStyle = {
+        padding: "10px",
+        borderRadius: "6px",
+        border: "1px solid #444",
+        backgroundColor: "#2C2C3A",
+        color: "#fff",
+        outline: "none",
+        fontSize: "0.95rem",
+        width: "100%",
+    };
+
+    const buttonStyle = {
+        padding: "10px 16px",
+        borderRadius: "6px",
+        border: "none",
+        backgroundColor: "#00FFC2",
+        color: "#000",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "background-color 0.2s ease",
+        width: "100%",
+    };
+
+    const buttonHover = {
+        backgroundColor: "#00E6AE",
+    };
+
+    const messageStyle = {
+        marginTop: "10px",
+        textAlign: "center",
+        fontSize: "0.9rem",
+        backgroundColor: "#2C2C3A",
+        padding: "10px",
+        borderRadius: "6px",
+    };
+
     return (
-        <div style={{ maxWidth: "500px", margin: "auto", padding: "20px", border: "1px solid #ccc", borderRadius: "10px" }}>
-            <h2>Создать голосование</h2>
-            <form onSubmit={handleSubmit}>
-                <input type="text" name="name" placeholder="Название голосования" value={pollData.name} onChange={handleNameChange} required />
-                
-                {pollData.candidates.map((candidate, index) => (
-                    <div key={index}>
-                        <input
-                            type="text"
-                            placeholder={`Кандидат ${index + 1}`}
-                            value={candidate}
-                            onChange={(e) => handleChange(e, index)}
-                            required
-                        />
-                        {pollData.candidates.length > 2 && (
-                            <button type="button" onClick={() => removeCandidate(index)}>-</button>
-                        )}
-                    </div>
-                ))}
+        <div style={pageStyle}>
+            <div style={containerStyle}>
+                <h2 style={headerStyle}>Создать голосование</h2>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Название голосования"
+                        value={pollData.name}
+                        onChange={handleNameChange}
+                        style={inputStyle}
+                        required
+                    />
+                    
+                    {pollData.candidates.map((candidate, index) => (
+                        <div key={index} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                            <input
+                                type="text"
+                                placeholder={`Кандидат ${index + 1}`}
+                                value={candidate}
+                                onChange={(e) => handleChange(e, index)}
+                                style={inputStyle}
+                                required
+                            />
+                            {pollData.candidates.length > 2 && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeCandidate(index)}
+                                    style={{ ...buttonStyle, width: "40px", textAlign: "center", fontSize: "1rem" }}
+                                >
+                                    -
+                                </button>
+                            )}
+                        </div>
+                    ))}
 
-                {pollData.candidates.length < 8 && (
-                    <button type="button" onClick={addCandidate}>+ Добавить кандидата</button>
-                )}
+                    {pollData.candidates.length < 8 && (
+                        <button
+                            type="button"
+                            onClick={addCandidate}
+                            style={{
+                                ...buttonStyle,
+                                ...(hoverAdd ? buttonHover : {}),
+                            }}
+                            onMouseEnter={() => setHoverAdd(true)}
+                            onMouseLeave={() => setHoverAdd(false)}
+                        >
+                            + Добавить кандидата
+                        </button>
+                    )}
 
-                <button type="submit">Создать голосование</button>
-            </form>
-            {message && <p>{message}</p>}
+                    <button
+                        type="submit"
+                        style={{
+                            ...buttonStyle,
+                            ...(hoverCreate ? buttonHover : {}),
+                        }}
+                        onMouseEnter={() => setHoverCreate(true)}
+                        onMouseLeave={() => setHoverCreate(false)}
+                    >
+                        Создать голосование
+                    </button>
+                </form>
+
+                {message && <p style={messageStyle}>{message}</p>}
+            </div>
         </div>
     );
 };

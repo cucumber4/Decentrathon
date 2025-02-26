@@ -8,6 +8,8 @@ const Dashboard = () => {
     const [hoverLogout, setHoverLogout] = useState(false);
     const [hoverVote, setHoverVote] = useState(false);
     const [hoverResults, setHoverResults] = useState(false);
+    const [hoverCreatePoll, setHoverCreatePoll] = useState(false);
+    const [hoverManagePolls, setHoverManagePolls] = useState(false);
     const [agaBalance, setAgaBalance] = useState(null); // Баланс AGA токенов
 
     const navigate = useNavigate();
@@ -36,8 +38,10 @@ const Dashboard = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(response.data);
+                
                 const balanceResponse = await axios.get(`http://127.0.0.1:8000/user/balance/${response.data.wallet_address}`);
                 setAgaBalance(balanceResponse.data.balance); // Устанавливаем баланс в стейт
+
             } catch (error) {
                 console.error("Ошибка загрузки пользователя:", error);
                 setMessage("Ошибка загрузки пользователя.");
@@ -62,7 +66,7 @@ const Dashboard = () => {
     };
 
     const containerStyle = {
-        width: "480px",
+        width: "500px",
         padding: "30px",
         borderRadius: "8px",
         backgroundColor: "rgba(30, 30, 47, 0.9)", // Полупрозрачный контейнер
@@ -130,6 +134,14 @@ const Dashboard = () => {
         navigate("/results");
     };
 
+    const handleGoToCreatePoll = () => {
+        navigate("/create-poll");
+    };
+
+    const handleGoToManagePolls = () => {
+        navigate("/admin");
+    };
+
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
@@ -141,6 +153,7 @@ const Dashboard = () => {
                             <p><strong>Адрес почты:</strong> {user.email}</p>
                             <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
                             <p><strong>Баланс AGA:</strong> {agaBalance !== null ? `${agaBalance} AGA` : "Загрузка..."}</p>
+                            <p><strong>Роль:</strong> {user.role === "admin" ? "Администратор" : "Пользователь"}</p>
                         </div>
                         <div style={buttonContainerStyle}>
 
@@ -169,6 +182,35 @@ const Dashboard = () => {
                             >
                                 Посмотреть результаты
                             </button>
+
+                            {/* Кнопки "Создать голосование" и "Открыть/Закрыть голосования" только для админа */}
+                            {user.role === "admin" && (
+                                <>
+                                    <button
+                                        onClick={handleGoToCreatePoll}
+                                        style={{
+                                            ...buttonStyle,
+                                            ...(hoverCreatePoll ? buttonHover : {})
+                                        }}
+                                        onMouseEnter={() => setHoverCreatePoll(true)}
+                                        onMouseLeave={() => setHoverCreatePoll(false)}
+                                    >
+                                        Создать голосование
+                                    </button>
+
+                                    <button
+                                        onClick={handleGoToManagePolls}
+                                        style={{
+                                            ...buttonStyle,
+                                            ...(hoverManagePolls ? buttonHover : {})
+                                        }}
+                                        onMouseEnter={() => setHoverManagePolls(true)}
+                                        onMouseLeave={() => setHoverManagePolls(false)}
+                                    >
+                                        Открыть/Закрыть голосования
+                                    </button>
+                                </>
+                            )}
 
                             {/* Кнопка "Выйти" */}
                             <button
