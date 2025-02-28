@@ -9,6 +9,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Results from "./pages/Results";
 import PollsList from "./pages/PollsList";
 import PollDetail from "./pages/PollDetail";
+import ForgotPassword from "./pages/ForgotPassword";  // 📌 Добавлено
+import ResetPassword from "./pages/ResetPassword";    // 📌 Добавлено
 
 function App() {
     return (
@@ -27,7 +29,9 @@ function App() {
 
                 {/* Детальная страница одного голосования */}
                 <Route path="/vote/:pollId" element={<PollDetail />} />
-
+                {/* 📌 Новый функционал: Восстановление пароля */}
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
             </Routes>
         </Router>

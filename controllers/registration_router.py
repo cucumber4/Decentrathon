@@ -132,3 +132,54 @@ def get_balance(wallet_address: str):
         return {"wallet_address": wallet_address, "balance": balance}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении баланса: {str(e)}")
+
+password_reset_codes = {}
+
+# 📌 1. API для отправки кода восстановления пароля
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь с таким email не найден")
+
+    # Генерируем код
+    code = generate_verification_code()
+
+    # Сохраняем временно
+    password_reset_codes[request.email] = code
+
+    # Отправляем код на почту
+    background_tasks.add_task(send_verification_email, request.email, code)
+
+    return {"message": "Код для сброса пароля отправлен на email"}
+
+# 📌 2. API для смены пароля
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+@router.post("/reset-password")
+def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    if request.email not in password_reset_codes:
+        raise HTTPException(status_code=400, detail="Код для сброса пароля не запрашивался")
+
+    if password_reset_codes[request.email] != request.code:
+        raise HTTPException(status_code=400, detail="Неверный код подтверждения")
+
+    # Находим пользователя
+    user = db.query(User).filter(User.email == request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Обновляем пароль
+    user.password = hash_password(request.new_password)
+    db.commit()
+
+    # Удаляем код из временного хранилища
+    del password_reset_codes[request.email]
+
+    return {"message": "Пароль успешно обновлен"}
