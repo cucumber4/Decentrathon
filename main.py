@@ -11,25 +11,21 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Разрешаем все домены (лучше указать нужные)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы
-    allow_headers=["*"],  # Разрешаем все заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Настраиваем OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/login")
 
-# Подключаем маршруты
 app.include_router(register_router, prefix="/user", tags=["User"])
 app.include_router(auth_router, prefix="/user", tags=["Auth"])
 app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 app.include_router(poll_router, prefix="/polls", tags=["Polls"])
 app.include_router(vote_router, prefix="/votes", tags=["Votes"])
 
-
-
-
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

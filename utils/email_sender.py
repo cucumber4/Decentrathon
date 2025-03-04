@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SMTP_SERVER = "smtp.mailgun.org"  # адрес вашего SMTP-сервера
-SMTP_PORT = 587  # порт, например, 587 для TLS
+SMTP_SERVER = "smtp.mailgun.org"  # адрес SMTP-сервера
+SMTP_PORT = 587
 SMTP_USER = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
@@ -24,5 +24,4 @@ def send_verification_email(recipient_email: str, code: str):
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
 
-
-#send_verification_email('gogoreferenc@gmail.com', '546532')
+# send_verification_email('gogoreferenc@gmail.com', '546532')

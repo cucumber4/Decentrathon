@@ -11,11 +11,10 @@ import os
 
 router = APIRouter()
 
-# Подключение к Ethereum-сети
 RPC_URL = "https://sepolia.infura.io/v3/cbfec6723c0b4264b5b3dcf5cba569e9"
 web3 = Web3(Web3.HTTPProvider(RPC_URL, {"timeout": 60}))
-CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9"  # ✅ Храним в переменной окружения
-TOKEN_ABI =[
+CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9"
+TOKEN_ABI = [
     {
         "inputs": [
             {
@@ -220,7 +219,7 @@ TOKEN_ABI =[
         "stateMutability": "nonpayable",
         "type": "function"
     }
-] # ABI контракта
+]  # ABI контракта
 
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=TOKEN_ABI)
 
@@ -236,7 +235,7 @@ def get_valid_nonce(wallet_address):
             return latest_nonce
 
         print(f"⚠️ Ожидание сброса pending nonce... (Latest: {latest_nonce}, Pending: {pending_nonce})")
-        time.sleep(2)  # Ждем 2 секунды
+        time.sleep(2)
 
 
 # Pydantic-модель
@@ -258,7 +257,7 @@ def create_poll(poll: PollCreate, db: Session = Depends(get_db), user: dict = De
     if len(poll.candidates) < 2 or len(poll.candidates) > 8:
         raise HTTPException(status_code=400, detail="Количество кандидатов должно быть от 2 до 8")
 
-    wallet_address = CREATOR_ADDRESS  # Используем адрес администратора
+    wallet_address = CREATOR_ADDRESS  # адрес администратора
 
     nonce = get_valid_nonce(wallet_address)
     tx = contract.functions.createPoll(poll.name, poll.candidates).build_transaction({
@@ -341,7 +340,8 @@ def open_poll(poll_id: int, user: dict = Depends(is_admin)):
             'from': CREATOR_ADDRESS,
             'gas': 200000,
             'gasPrice': web3.eth.gas_price,
-            'nonce': nonce
+            'nonce': nonce,
+            'chainId': 11155111
         })
 
         signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
@@ -362,7 +362,8 @@ def close_poll(poll_id: int, user: dict = Depends(is_admin)):
             'from': CREATOR_ADDRESS,
             'gas': 200000,
             'gasPrice': web3.eth.gas_price,
-            'nonce': nonce
+            'nonce': nonce,
+            'chainId': 11155111
         })
 
         signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
@@ -385,7 +386,7 @@ def get_polls_onchain():
             poll_name = poll_info[0]
             poll_active = poll_info[1]
 
-            # Фильтруем только активные
+            # только активные
             if poll_active:
                 polls.append({
                     "id": i,

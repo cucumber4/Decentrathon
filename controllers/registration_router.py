@@ -11,12 +11,14 @@ import string, random
 
 router = APIRouter()
 
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 RPC_URL = "https://sepolia.infura.io/v3/cbfec6723c0b4264b5b3dcf5cba569e9"
 web3 = Web3(Web3.HTTPProvider(RPC_URL, {"timeout": 60}))
@@ -33,31 +35,30 @@ TOKEN_ABI = [
 
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=TOKEN_ABI)
 
+
 def generate_verification_code(length: int = 6) -> str:
     return "".join(random.choices(string.digits, k=length))
 
+
 temp_registrations = {}
+
 
 @router.post("/register")
 def register_user(user: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    # Если пользователь с таким email уже зарегистрирован – выдаём ошибку
     if db.query(User).filter(User.wallet_address == user.wallet_address).first():
         raise HTTPException(status_code=400, detail="Кошелек уже зарегистрирован")
 
-    # Генерируем код подтверждения
     code = generate_verification_code()
-
-    # Сохраняем данные во временное хранилище
     temp_registrations[user.email] = {"user_data": user.dict(), "code": code}
-
-    # Отправляем email в фоне
     background_tasks.add_task(send_verification_email, user.email, code)
 
     return {"message": "На вашу почту отправлен код подтверждения"}
 
+
 class VerificationData(BaseModel):
     email: str
     code: str
+
 
 @router.post("/verify")
 def verify_user(data: VerificationData, db: Session = Depends(get_db)):
@@ -67,7 +68,6 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
     if record["code"] != data.code:
         raise HTTPException(status_code=400, detail="Неверный код подтверждения")
 
-    # Создаем пользователя в постоянной базе данных
     user_data = record["user_data"]
     hashed_password = hash_password(user_data["password"])
     new_user = User(
@@ -83,18 +83,15 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    # Удаляем временную запись
     del temp_registrations[data.email]
 
-    # Начисление 10 AGA токенов новому пользователю
     try:
         nonce = web3.eth.get_transaction_count(CREATOR_ADDRESS, "pending")
         gas_price = web3.eth.gas_price
 
-        # Увеличиваем gasPrice на 10% для ускорения транзакции
+        # gasPrice на 10% для ускорения транзакции
         gas_price = int(gas_price * 1.1)
 
-        # Создаем транзакцию
         tx = contract.functions.transfer(new_user.wallet_address, 10 * 10 ** 18).build_transaction({
             'from': CREATOR_ADDRESS,
             'gas': 100000,
@@ -102,15 +99,12 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
             'nonce': nonce
         })
 
-        # Проверка баланса контракта
         contract_balance = contract.functions.balanceOf(CREATOR_ADDRESS).call()
         print(f"Баланс контракта: {Web3.from_wei(contract_balance, 'ether')} AGA")
 
-        # Проверка ETH-баланса для оплаты газа
         balance_eth = web3.eth.get_balance(CREATOR_ADDRESS)
         print(f"Баланс ETH: {Web3.from_wei(balance_eth, 'ether')} ETH")
 
-        # Подписываем и отправляем транзакцию
         signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
         tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
@@ -120,10 +114,10 @@ def verify_user(data: VerificationData, db: Session = Depends(get_db)):
         }
 
     except Exception as e:
-        # Откатываем создание пользователя, если произошла ошибка с токенами
         db.delete(new_user)
         db.commit()
         raise HTTPException(status_code=500, detail=f"Ошибка при начислении токенов: {str(e)}")
+
 
 @router.get("/balance/{wallet_address}")
 def get_balance(wallet_address: str):
@@ -133,11 +127,13 @@ def get_balance(wallet_address: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении баланса: {str(e)}")
 
+
 password_reset_codes = {}
 
-# 📌 1. API для отправки кода восстановления пароля
+
 class ForgotPasswordRequest(BaseModel):
     email: str
+
 
 @router.post("/forgot-password")
 def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -145,22 +141,18 @@ def forgot_password(request: ForgotPasswordRequest, background_tasks: Background
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь с таким email не найден")
 
-    # Генерируем код
     code = generate_verification_code()
-
-    # Сохраняем временно
     password_reset_codes[request.email] = code
-
-    # Отправляем код на почту
     background_tasks.add_task(send_verification_email, request.email, code)
 
     return {"message": "Код для сброса пароля отправлен на email"}
 
-# 📌 2. API для смены пароля
+
 class ResetPasswordRequest(BaseModel):
     email: str
     code: str
     new_password: str
+
 
 @router.post("/reset-password")
 def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
@@ -170,16 +162,13 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
     if password_reset_codes[request.email] != request.code:
         raise HTTPException(status_code=400, detail="Неверный код подтверждения")
 
-    # Находим пользователя
     user = db.query(User).filter(User.email == request.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-    # Обновляем пароль
     user.password = hash_password(request.new_password)
     db.commit()
 
-    # Удаляем код из временного хранилища
     del password_reset_codes[request.email]
 
     return {"message": "Пароль успешно обновлен"}

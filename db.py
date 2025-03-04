@@ -5,5 +5,7 @@ DATABASE_URL = "postgresql://postgres:12345qwert@localhost:5432/blockchain_votin
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
 class GlobalBase(DeclarativeBase):
     pass
