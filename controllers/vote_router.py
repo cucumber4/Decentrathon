@@ -221,32 +221,39 @@ voting_contract = web3.eth.contract(address=VOTING_CONTRACT_ADDRESS, abi=VOTING_
 def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(get_current_user)):
     user_address = user["wallet_address"]
 
-    # ✅ 1. Получаем актуальный nonce
     nonce = web3.eth.get_transaction_count(user_address, "latest")
 
-    balance = web3.eth.get_balance(user_address)
-    gas_price = web3.eth.gas_price
-    estimated_gas = 200000
-    gas_cost = estimated_gas * gas_price
-
-    if balance < gas_cost:
-        raise HTTPException(status_code=400, detail="Недостаточно средств на газ!")
+    # актуальные данные по газу (EIP-1559)
+    base_fee = web3.eth.fee_history(1, "latest")["baseFeePerGas"][-1]
+    max_priority_fee = web3.to_wei(2, "gwei")
+    max_fee = base_fee + max_priority_fee
 
     try:
+        estimated_gas = voting_contract.functions.vote(poll_id, candidate).estimate_gas({
+            'from': user_address
+        })
+
+        gas_cost = estimated_gas * max_fee
+        balance = web3.eth.get_balance(user_address)
+        if balance < gas_cost:
+            raise HTTPException(status_code=400, detail="Недостаточно ETH для оплаты газа!")
+
         tx = voting_contract.functions.vote(poll_id, candidate).build_transaction({
             'from': user_address,
             'gas': estimated_gas,
-            'gasPrice': gas_price * 1.5,
-            'nonce': nonce  # ✅ Используем корректный nonce
+            'maxPriorityFeePerGas': max_priority_fee,
+            'maxFeePerGas': max_fee,
+            'nonce': nonce,
+            'chainId': 11155111
         })
 
-        return {"transaction": tx}  # ✅ Отправляем "сырую" транзакцию на фронт
+        return {"transaction": tx}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при создании транзакции: {str(e)}")
 
 
-@router.get("/{poll_id}/{candidate}")  # Без "votes" в пути
+@router.get("/{poll_id}/{candidate}")
 def get_votes(poll_id: int, candidate: str):
     votes = voting_contract.functions.getResult(poll_id, candidate).call()
     return {"poll_id": poll_id, "candidate": candidate, "votes": votes}
