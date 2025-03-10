@@ -10,26 +10,17 @@ const Dashboard = () => {
     const [hoverResults, setHoverResults] = useState(false);
     const [hoverCreatePoll, setHoverCreatePoll] = useState(false);
     const [hoverManagePolls, setHoverManagePolls] = useState(false);
-    const [agaBalance, setAgaBalance] = useState(null); // Баланс AGA токенов
+    const [hoverProposePoll, setHoverProposePoll] = useState(false);
+    const [hoverViewProposals, setHoverViewProposals] = useState(false);
+    const [agaBalance, setAgaBalance] = useState(null);
 
     const navigate = useNavigate();
-
-    // Подключаем Google Font (Montserrat)
-    useEffect(() => {
-        const link = document.createElement("link");
-        link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-        return () => {
-            document.head.removeChild(link);
-        };
-    }, []);
 
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                navigate("/"); // Перенаправление на логин, если нет токена
+                navigate("/");
                 return;
             }
 
@@ -38,9 +29,9 @@ const Dashboard = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(response.data);
-                
+
                 const balanceResponse = await axios.get(`http://127.0.0.1:8000/user/balance/${response.data.wallet_address}`);
-                setAgaBalance(balanceResponse.data.balance); // Устанавливаем баланс в стейт
+                setAgaBalance(balanceResponse.data.balance);
 
             } catch (error) {
                 console.error("Ошибка загрузки пользователя:", error);
@@ -53,7 +44,7 @@ const Dashboard = () => {
         fetchUserData();
     }, [navigate]);
 
-    // 🔹 Стили (сохраняем общую стилистику)
+    // 🔹 Стили
     const pageStyle = {
         minHeight: "100vh",
         margin: 0,
@@ -69,7 +60,7 @@ const Dashboard = () => {
         width: "500px",
         padding: "30px",
         borderRadius: "8px",
-        backgroundColor: "rgba(30, 30, 47, 0.9)", // Полупрозрачный контейнер
+        backgroundColor: "rgba(30, 30, 47, 0.9)",
         boxShadow: "0 0 10px rgba(0,0,0,0.3)",
         color: "#FFFFFF",
     };
@@ -142,6 +133,14 @@ const Dashboard = () => {
         navigate("/admin");
     };
 
+    const handleGoToProposePoll = () => {
+        navigate("/propose");
+    };
+
+    const handleGoToViewProposals = () => {
+        navigate("/proposals");
+    };
+
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
@@ -160,10 +159,7 @@ const Dashboard = () => {
                             {/* Кнопка "Перейти к голосованию" */}
                             <button
                                 onClick={handleGoToVote}
-                                style={{
-                                    ...buttonStyle,
-                                    ...(hoverVote ? buttonHover : {})
-                                }}
+                                style={{ ...buttonStyle, ...(hoverVote ? buttonHover : {}) }}
                                 onMouseEnter={() => setHoverVote(true)}
                                 onMouseLeave={() => setHoverVote(false)}
                             >
@@ -173,25 +169,31 @@ const Dashboard = () => {
                             {/* Кнопка "Посмотреть результаты" */}
                             <button
                                 onClick={handleGoToResults}
-                                style={{
-                                    ...buttonStyle,
-                                    ...(hoverResults ? buttonHover : {})
-                                }}
+                                style={{ ...buttonStyle, ...(hoverResults ? buttonHover : {}) }}
                                 onMouseEnter={() => setHoverResults(true)}
                                 onMouseLeave={() => setHoverResults(false)}
                             >
                                 Посмотреть результаты
                             </button>
 
-                            {/* Кнопки "Создать голосование" и "Открыть/Закрыть голосования" только для админа */}
+                            {/* Кнопка "Предложить голосование" только для пользователей */}
+                            {user.role === "user" && (
+                                <button
+                                    onClick={handleGoToProposePoll}
+                                    style={{ ...buttonStyle, ...(hoverProposePoll ? buttonHover : {}) }}
+                                    onMouseEnter={() => setHoverProposePoll(true)}
+                                    onMouseLeave={() => setHoverProposePoll(false)}
+                                >
+                                    Предложить голосование
+                                </button>
+                            )}
+
+                            {/* Кнопки для админа */}
                             {user.role === "admin" && (
                                 <>
                                     <button
                                         onClick={handleGoToCreatePoll}
-                                        style={{
-                                            ...buttonStyle,
-                                            ...(hoverCreatePoll ? buttonHover : {})
-                                        }}
+                                        style={{ ...buttonStyle, ...(hoverCreatePoll ? buttonHover : {}) }}
                                         onMouseEnter={() => setHoverCreatePoll(true)}
                                         onMouseLeave={() => setHoverCreatePoll(false)}
                                     >
@@ -200,14 +202,20 @@ const Dashboard = () => {
 
                                     <button
                                         onClick={handleGoToManagePolls}
-                                        style={{
-                                            ...buttonStyle,
-                                            ...(hoverManagePolls ? buttonHover : {})
-                                        }}
+                                        style={{ ...buttonStyle, ...(hoverManagePolls ? buttonHover : {}) }}
                                         onMouseEnter={() => setHoverManagePolls(true)}
                                         onMouseLeave={() => setHoverManagePolls(false)}
                                     >
                                         Открыть/Закрыть голосования
+                                    </button>
+
+                                    <button
+                                        onClick={handleGoToViewProposals}
+                                        style={{ ...buttonStyle, ...(hoverViewProposals ? buttonHover : {}) }}
+                                        onMouseEnter={() => setHoverViewProposals(true)}
+                                        onMouseLeave={() => setHoverViewProposals(false)}
+                                    >
+                                        Просмотреть предложенные голосования
                                     </button>
                                 </>
                             )}
@@ -215,10 +223,7 @@ const Dashboard = () => {
                             {/* Кнопка "Выйти" */}
                             <button
                                 onClick={handleLogout}
-                                style={{
-                                    ...buttonStyle,
-                                    ...(hoverLogout ? buttonHover : {})
-                                }}
+                                style={{ ...buttonStyle, ...(hoverLogout ? buttonHover : {}) }}
                                 onMouseEnter={() => setHoverLogout(true)}
                                 onMouseLeave={() => setHoverLogout(false)}
                             >

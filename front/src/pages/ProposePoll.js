@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const ProposePoll = () => {
     const [name, setName] = useState("");
     const [candidates, setCandidates] = useState([""]);
     const [message, setMessage] = useState("");
+
+    useEffect(() => {
+        // Подключаем Google Font (Montserrat)
+        const link = document.createElement("link");
+        link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, []);
 
     const handleChange = (e, index) => {
         const newCandidates = [...candidates];
@@ -42,7 +53,7 @@ const ProposePoll = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMessage(response.data.message);
+            setMessage("Предложение успешно отправлено!");
             setName("");
             setCandidates([""]);
         } catch (error) {
@@ -50,34 +61,153 @@ const ProposePoll = () => {
         }
     };
 
+    // 🔹 Стили
+    const pageStyle = {
+        minHeight: "100vh",
+        margin: 0,
+        padding: 0,
+        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', sans-serif",
+    };
+
+    const containerStyle = {
+        width: "500px",
+        padding: "30px",
+        borderRadius: "8px",
+        backgroundColor: "rgba(30, 30, 47, 0.9)",
+        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+        color: "#FFFFFF",
+    };
+
+    const headerStyle = {
+        marginBottom: "20px",
+        textAlign: "center",
+        color: "#00FFC2",
+        fontSize: "1.5rem",
+        fontWeight: 600,
+        textShadow: "0 0 5px rgba(0,255,194,0.4)",
+    };
+
+    const formStyle = {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    };
+
+    const inputStyle = {
+        padding: "10px",
+        borderRadius: "6px",
+        border: "1px solid #444",
+        backgroundColor: "#2C2C3A",
+        color: "#fff",
+        outline: "none",
+        fontSize: "0.95rem",
+        width: "100%",
+    };
+
+    const buttonContainerStyle = {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        marginTop: "8px",
+    };
+
+    const buttonStyle = {
+        padding: "12px",
+        borderRadius: "6px",
+        border: "none",
+        backgroundColor: "#00FFC2",
+        color: "#000",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "background-color 0.2s ease",
+    };
+
+    const buttonHover = {
+        backgroundColor: "#00E6AE",
+    };
+
+    const messageStyle = {
+        marginTop: "15px",
+        textAlign: "center",
+        fontSize: "0.95rem",
+        backgroundColor: "#2C2C3A",
+        padding: "10px",
+        borderRadius: "6px",
+    };
+
     return (
-        <div style={{ maxWidth: "500px", margin: "auto", padding: "20px", border: "1px solid #ccc", borderRadius: "10px" }}>
-            <h2>Предложить голосование</h2>
-            <form onSubmit={handleSubmit}>
-                <input type="text" name="name" placeholder="Название голосования" value={name} onChange={(e) => setName(e.target.value)} required />
-                
-                {candidates.map((candidate, index) => (
-                    <div key={index}>
-                        <input
-                            type="text"
-                            placeholder={`Кандидат ${index + 1}`}
-                            value={candidate}
-                            onChange={(e) => handleChange(e, index)}
-                            required
-                        />
-                        {candidates.length > 2 && (
-                            <button type="button" onClick={() => removeCandidate(index)}>-</button>
-                        )}
-                    </div>
-                ))}
+        <div style={pageStyle}>
+            <div style={containerStyle}>
+                <h2 style={headerStyle}>Предложить голосование</h2>
+                <form onSubmit={handleSubmit} style={formStyle}>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        placeholder="Название голосования" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        required 
+                        style={inputStyle} 
+                    />
 
-                {candidates.length < 8 && (
-                    <button type="button" onClick={addCandidate}>+ Добавить кандидата</button>
-                )}
+                    {candidates.map((candidate, index) => (
+                        <div key={index} style={{ display: "flex", gap: "10px" }}>
+                            <input
+                                type="text"
+                                placeholder={`Кандидат ${index + 1}`}
+                                value={candidate}
+                                onChange={(e) => handleChange(e, index)}
+                                required
+                                style={inputStyle}
+                            />
+                            {candidates.length > 2 && (
+                                <button 
+                                    type="button" 
+                                    onClick={() => removeCandidate(index)}
+                                    style={{
+                                        ...buttonStyle,
+                                        backgroundColor: "red",
+                                        color: "#fff",
+                                        fontWeight: "bold"
+                                    }}
+                                >
+                                    -
+                                </button>
+                            )}
+                        </div>
+                    ))}
 
-                <button type="submit">Предложить голосование</button>
-            </form>
-            {message && <p>{message}</p>}
+                    {candidates.length < 8 && (
+                        <button 
+                            type="button" 
+                            onClick={addCandidate} 
+                            style={{
+                                ...buttonStyle,
+                                backgroundColor: "#00FFC2",
+                                color: "#000"
+                            }}
+                        >
+                            + Добавить кандидата
+                        </button>
+                    )}
+
+                    <button 
+                        type="submit" 
+                        style={{
+                            ...buttonStyle,
+                            backgroundColor: "#00FFC2",
+                            color: "#000"
+                        }}
+                    >
+                        Предложить голосование
+                    </button>
+                </form>
+                {message && <p style={messageStyle}>{message}</p>}
+            </div>
         </div>
     );
 };
