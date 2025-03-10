@@ -11,6 +11,8 @@ import PollsList from "./pages/PollsList";
 import PollDetail from "./pages/PollDetail";
 import ForgotPassword from "./pages/ForgotPassword";  // 📌 Добавлено
 import ResetPassword from "./pages/ResetPassword";    // 📌 Добавлено
+import ProposePoll from "./pages/ProposePoll";
+import ProposalsList from "./pages/ProposalsList";
 
 function App() {
     return (
@@ -32,6 +34,8 @@ function App() {
                 {/* 📌 Новый функционал: Восстановление пароля */}
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/propose" element={<ProposePoll />} />
+                <Route path="/proposals" element={<ProposalsList />} />
 
             </Routes>
         </Router>

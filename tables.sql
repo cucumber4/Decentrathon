@@ -20,3 +20,12 @@ CREATE TABLE polls (
     candidates TEXT[] NOT NULL,
     active BOOLEAN NOT NULL DEFAULT true
 );
+
+
+-- Таблица предложенных голосований
+CREATE TABLE proposed_polls (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    candidates TEXT[] NOT NULL,
+    approved BOOLEAN NOT NULL DEFAULT FALSE
+);
