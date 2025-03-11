@@ -45,6 +45,18 @@ const TokenRequests = () => {
         }
     }
 
+    const buttonStyle = {
+        padding: "10px 16px",
+        borderRadius: "6px",
+        border: "none",
+        backgroundColor: "#00FFC2",
+        color: "#000",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "background-color 0.2s ease",
+        margin: "5px"
+    };
+
     return (
         <div style={{ textAlign: "center", padding: "30px", color: "#FFFFFF", fontFamily: "Montserrat, sans-serif", background: "#222", minHeight: "100vh" }}>
             <h2>Запросы на AGA</h2>

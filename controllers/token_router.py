@@ -2,19 +2,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from schemas.user_scheme import User
-from schemas.token_request_scheme  import TokenRequest
+from schemas.token_request_scheme import TokenRequest
 from utils.dependencies import get_current_user, is_admin
 from web3 import Web3
 from pydantic import BaseModel
 
 router = APIRouter()
 
-RPC_URL = "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"
+RPC_URL = "https://sepolia.infura.io/v3/cbfec6723c0b4264b5b3dcf5cba569e9"
 web3 = Web3(Web3.HTTPProvider(RPC_URL, {"timeout": 60}))
 
-CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9"
+CONTRACT_ADDRESS = "0x024b770fd5E43258363651B5545efbf080d0775F"
 CREATOR_ADDRESS = "0xa21356475F98ABF66Fc39D390325e4002b75AEC4"
-PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+PRIVATE_KEY = "b4cec174d98688e762355891cbc52759bf5996cb7b47057d1b151b68e9454209"
 
 contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=[
     {
@@ -33,6 +33,7 @@ contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=[
     }
 ])
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -43,13 +44,11 @@ def get_db():
 
 @router.post("/request-tokens")
 def request_tokens(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    # 🔹 Получаем пользователя по email из токена
     db_user = db.query(User).filter(User.email == user["sub"]).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-    # 🔹 Проверяем, есть ли уже активный запрос
     existing_request = db.query(TokenRequest).filter(
         TokenRequest.user_id == db_user.id, TokenRequest.status == "pending"
     ).first()
@@ -57,15 +56,13 @@ def request_tokens(user: dict = Depends(get_current_user), db: Session = Depends
     if existing_request:
         raise HTTPException(status_code=400, detail="У вас уже есть активный запрос")
 
-    # 🔹 Создаем новую заявку
+
     token_request = TokenRequest(user_id=db_user.id, wallet_address=db_user.wallet_address)
     db.add(token_request)
     db.commit()
     db.refresh(token_request)
 
     return {"message": "Запрос отправлен. Ожидайте одобрения администратором."}
-
-
 
 
 @router.get("/token-requests")
@@ -86,9 +83,10 @@ def approve_request(request_id: int, user: dict = Depends(is_admin), db: Session
 
     tx = contract.functions.transfer(request.wallet_address, 10 * 10 ** 18).build_transaction({
         'from': CREATOR_ADDRESS,
-        'gas': 100000,
+        'gas': 200000,
         'gasPrice': gas_price,
-        'nonce': nonce
+        'nonce': nonce,
+        'chainId': 11155111
     })
 
     signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
