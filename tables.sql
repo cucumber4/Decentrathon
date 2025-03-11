@@ -29,3 +29,13 @@ CREATE TABLE proposed_polls (
     candidates TEXT[] NOT NULL,
     approved BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+
+-- Таблица запрос токенов
+CREATE TABLE token_requests (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    wallet_address TEXT NOT NULL,
+    status TEXT CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

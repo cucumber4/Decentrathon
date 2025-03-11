@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy.orm import relationship
 from db import GlobalBase
 import enum
 
@@ -17,3 +18,5 @@ class User(GlobalBase):
     password = Column(String, nullable=False)
     wallet_address = Column(String, unique=True, nullable=False)
     role = Column(Enum(RoleEnum), default=RoleEnum.user, nullable=False)
+
+    token_requests = relationship("TokenRequest", back_populates="user", cascade="all, delete-orphan")

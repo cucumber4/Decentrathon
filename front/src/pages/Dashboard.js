@@ -5,15 +5,7 @@ import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [message, setMessage] = useState("");
-    const [hoverLogout, setHoverLogout] = useState(false);
-    const [hoverVote, setHoverVote] = useState(false);
-    const [hoverResults, setHoverResults] = useState(false);
-    const [hoverCreatePoll, setHoverCreatePoll] = useState(false);
-    const [hoverManagePolls, setHoverManagePolls] = useState(false);
-    const [hoverProposePoll, setHoverProposePoll] = useState(false);
-    const [hoverViewProposals, setHoverViewProposals] = useState(false);
     const [agaBalance, setAgaBalance] = useState(null);
-
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,7 +24,6 @@ const Dashboard = () => {
 
                 const balanceResponse = await axios.get(`http://127.0.0.1:8000/user/balance/${response.data.wallet_address}`);
                 setAgaBalance(balanceResponse.data.balance);
-
             } catch (error) {
                 console.error("Ошибка загрузки пользователя:", error);
                 setMessage("Ошибка загрузки пользователя.");
@@ -44,201 +35,75 @@ const Dashboard = () => {
         fetchUserData();
     }, [navigate]);
 
-    // 🔹 Стили
-    const pageStyle = {
-        minHeight: "100vh",
-        margin: 0,
-        padding: 0,
-        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "'Montserrat', sans-serif",
+    const handleRequestTokens = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.post("http://127.0.0.1:8000/tokens/request-tokens", {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setMessage(response.data.message);
+        } catch (error) {
+            setMessage(error.response?.data?.detail || "Ошибка запроса токенов");
+        }
     };
-
-    const containerStyle = {
-        width: "500px",
-        padding: "30px",
-        borderRadius: "8px",
-        backgroundColor: "rgba(30, 30, 47, 0.9)",
-        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-        color: "#FFFFFF",
-    };
-
-    const headerStyle = {
-        marginBottom: "20px",
-        textAlign: "center",
-        color: "#00FFC2",
-        fontSize: "1.5rem",
-        fontWeight: 600,
-        textShadow: "0 0 5px rgba(0,255,194,0.4)",
-    };
-
-    const userInfoStyle = {
-        marginBottom: "20px",
-        lineHeight: "1.6",
-    };
-
-    const buttonContainerStyle = {
-        display: "flex",
-        gap: "10px",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        marginTop: "20px",
-    };
-
-    const buttonStyle = {
-        padding: "10px 16px",
-        borderRadius: "6px",
-        border: "none",
-        backgroundColor: "#00FFC2",
-        color: "#000",
-        fontWeight: 600,
-        cursor: "pointer",
-        transition: "background-color 0.2s ease",
-    };
-
-    const buttonHover = {
-        backgroundColor: "#00E6AE",
-    };
-
-    const messageStyle = {
-        marginTop: "15px",
-        textAlign: "center",
-        fontSize: "0.95rem",
-        backgroundColor: "#2C2C3A",
-        padding: "10px",
-        borderRadius: "6px",
-    };
-
-    // Функции для навигации по кнопкам
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
-    };
-
-    const handleGoToVote = () => {
-        navigate("/polls");
-    };
-
-    const handleGoToResults = () => {
-        navigate("/results");
-    };
-
-    const handleGoToCreatePoll = () => {
-        navigate("/create-poll");
-    };
-
-    const handleGoToManagePolls = () => {
-        navigate("/admin");
-    };
-
-    const handleGoToProposePoll = () => {
-        navigate("/propose");
-    };
-
-    const handleGoToViewProposals = () => {
-        navigate("/proposals");
-    };
+    
 
     return (
-        <div style={pageStyle}>
-            <div style={containerStyle}>
-                <h2 style={headerStyle}>Добро пожаловать!</h2>
+        <div style={{ minHeight: "100vh", background: "#222", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Montserrat, sans-serif" }}>
+            <div style={{ width: "500px", padding: "30px", borderRadius: "8px", backgroundColor: "rgba(30, 30, 47, 0.9)", boxShadow: "0 0 10px rgba(0,0,0,0.3)", color: "#FFFFFF" }}>
+                <h2 style={{ textAlign: "center", color: "#00FFC2", fontSize: "1.5rem", fontWeight: 600 }}>Добро пожаловать!</h2>
+
                 {user ? (
                     <>
-                        <div style={userInfoStyle}>
+                        <div style={{ marginBottom: "20px", lineHeight: "1.6" }}>
                             <p><strong>Имя:</strong> {user.first_name} {user.last_name}</p>
                             <p><strong>Адрес почты:</strong> {user.email}</p>
                             <p><strong>Адрес кошелька:</strong> {user.wallet_address}</p>
                             <p><strong>Баланс AGA:</strong> {agaBalance !== null ? `${agaBalance} AGA` : "Загрузка..."}</p>
                             <p><strong>Роль:</strong> {user.role === "admin" ? "Администратор" : "Пользователь"}</p>
                         </div>
-                        <div style={buttonContainerStyle}>
 
-                            {/* Кнопка "Перейти к голосованию" */}
-                            <button
-                                onClick={handleGoToVote}
-                                style={{ ...buttonStyle, ...(hoverVote ? buttonHover : {}) }}
-                                onMouseEnter={() => setHoverVote(true)}
-                                onMouseLeave={() => setHoverVote(false)}
-                            >
-                                Перейти к голосованию
-                            </button>
+                        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px" }}>
+                            <button onClick={() => navigate("/polls")} style={buttonStyle}>Перейти к голосованию</button>
+                            <button onClick={() => navigate("/results")} style={buttonStyle}>Посмотреть результаты</button>
 
-                            {/* Кнопка "Посмотреть результаты" */}
-                            <button
-                                onClick={handleGoToResults}
-                                style={{ ...buttonStyle, ...(hoverResults ? buttonHover : {}) }}
-                                onMouseEnter={() => setHoverResults(true)}
-                                onMouseLeave={() => setHoverResults(false)}
-                            >
-                                Посмотреть результаты
-                            </button>
-
-                            {/* Кнопка "Предложить голосование" только для пользователей */}
+                            {/* Кнопка "Запросить токены" для пользователей */}
                             {user.role === "user" && (
-                                <button
-                                    onClick={handleGoToProposePoll}
-                                    style={{ ...buttonStyle, ...(hoverProposePoll ? buttonHover : {}) }}
-                                    onMouseEnter={() => setHoverProposePoll(true)}
-                                    onMouseLeave={() => setHoverProposePoll(false)}
-                                >
-                                    Предложить голосование
-                                </button>
+                                <button onClick={handleRequestTokens} style={buttonStyle}>Запросить 10 AGA</button>
                             )}
 
                             {/* Кнопки для админа */}
                             {user.role === "admin" && (
                                 <>
-                                    <button
-                                        onClick={handleGoToCreatePoll}
-                                        style={{ ...buttonStyle, ...(hoverCreatePoll ? buttonHover : {}) }}
-                                        onMouseEnter={() => setHoverCreatePoll(true)}
-                                        onMouseLeave={() => setHoverCreatePoll(false)}
-                                    >
-                                        Создать голосование
-                                    </button>
-
-                                    <button
-                                        onClick={handleGoToManagePolls}
-                                        style={{ ...buttonStyle, ...(hoverManagePolls ? buttonHover : {}) }}
-                                        onMouseEnter={() => setHoverManagePolls(true)}
-                                        onMouseLeave={() => setHoverManagePolls(false)}
-                                    >
-                                        Открыть/Закрыть голосования
-                                    </button>
-
-                                    <button
-                                        onClick={handleGoToViewProposals}
-                                        style={{ ...buttonStyle, ...(hoverViewProposals ? buttonHover : {}) }}
-                                        onMouseEnter={() => setHoverViewProposals(true)}
-                                        onMouseLeave={() => setHoverViewProposals(false)}
-                                    >
-                                        Просмотреть предложенные голосования
-                                    </button>
+                                    <button onClick={() => navigate("/create-poll")} style={buttonStyle}>Создать голосование</button>
+                                    <button onClick={() => navigate("/admin")} style={buttonStyle}>Открыть/Закрыть голосования</button>
+                                    <button onClick={() => navigate("/proposals")} style={buttonStyle}>Просмотреть предложения</button>
+                                    <button onClick={() => navigate("/token-requests")} style={buttonStyle}>Запросы на токены</button>
                                 </>
                             )}
 
-                            {/* Кнопка "Выйти" */}
-                            <button
-                                onClick={handleLogout}
-                                style={{ ...buttonStyle, ...(hoverLogout ? buttonHover : {}) }}
-                                onMouseEnter={() => setHoverLogout(true)}
-                                onMouseLeave={() => setHoverLogout(false)}
-                            >
-                                Выйти
-                            </button>
+                            <button onClick={() => { localStorage.removeItem("token"); navigate("/"); }} style={buttonStyle}>Выйти</button>
                         </div>
                     </>
                 ) : (
                     <p>Загрузка...</p>
                 )}
 
-                {message && <p style={messageStyle}>{message}</p>}
+                {message && <p style={{ textAlign: "center", backgroundColor: "#2C2C3A", padding: "10px", borderRadius: "6px" }}>{message}</p>}
             </div>
         </div>
     );
+};
+
+const buttonStyle = {
+    padding: "10px 16px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#00FFC2",
+    color: "#000",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
 };
 
 export default Dashboard;
