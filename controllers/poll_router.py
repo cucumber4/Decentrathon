@@ -496,3 +496,17 @@ def reject_proposed_poll(proposal_id: int, db: Session = Depends(get_db), user: 
     db.commit()
 
     return {"message": "Голосование успешно отклонено"}
+
+
+@router.get("/")
+def get_all_polls(db: Session = Depends(get_db)):
+    polls = db.query(Poll).all()
+    return [{"id": poll.id, "name": poll.name, "candidates": poll.candidates} for poll in polls]
+
+
+@router.get("/search")
+def search_polls(name: str, db: Session = Depends(get_db)):
+    polls = db.query(Poll).filter(Poll.name.ilike(f"%{name}%")).all()
+    if not polls:
+        raise HTTPException(status_code=404, detail="Голосование не найдено")
+    return polls
