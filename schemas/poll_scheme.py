@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, ARRAY, Text
+from sqlalchemy.orm import relationship
+
 from db import GlobalBase
 
 
@@ -9,3 +11,5 @@ class Poll(GlobalBase):
     name = Column(String, nullable=False)
     candidates = Column(ARRAY(Text), nullable=False)
     active = Column(Boolean, default=True, nullable=False)
+
+    vote_history = relationship("VoteHistory", back_populates="poll")

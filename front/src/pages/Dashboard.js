@@ -66,10 +66,14 @@ const Dashboard = () => {
                         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px" }}>
                             <button onClick={() => navigate("/polls")} style={buttonStyle}>Перейти к голосованию</button>
                             <button onClick={() => navigate("/results")} style={buttonStyle}>Посмотреть результаты</button>
+                            <button onClick={() => navigate("/vote-history")} style={buttonStyle}>История голосований</button>
 
                             {/* Кнопка "Запросить токены" для пользователей */}
                             {user.role === "user" && (
-                                <button onClick={handleRequestTokens} style={buttonStyle}>Запросить 10 AGA</button>
+                                 <>
+                                 <button onClick={handleRequestTokens} style={buttonStyle}>Запросить 10 AGA</button>
+                                 <button onClick={() => navigate("/propose")} style={buttonStyle}>Предложить голосование</button> {/* 🔹 Новая кнопка */}
+                             </>
                             )}
 
                             {/* Кнопки для админа */}

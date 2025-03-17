@@ -20,3 +20,4 @@ class User(GlobalBase):
     role = Column(Enum(RoleEnum), default=RoleEnum.user, nullable=False)
 
     token_requests = relationship("TokenRequest", back_populates="user", cascade="all, delete-orphan")
+    vote_history = relationship("VoteHistory", back_populates="user")

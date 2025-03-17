@@ -14,6 +14,9 @@ import ResetPassword from "./pages/ResetPassword";    // 📌 Добавлено
 import ProposePoll from "./pages/ProposePoll";
 import ProposalsList from "./pages/ProposalsList";
 import TokenRequests from "./pages/TokenRequests";
+import VoteHistory from "./pages/VoteHistory";
+
+
 
 function App() {
     return (
@@ -38,6 +41,7 @@ function App() {
                 <Route path="/propose" element={<ProposePoll />} />
                 <Route path="/proposals" element={<ProposalsList />} />
                 <Route path="/token-requests" element={<TokenRequests />} />
+                <Route path="/vote-history" element={<VoteHistory />} />
 
 
             </Routes>

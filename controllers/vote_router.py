@@ -1,6 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from web3 import Web3
+
+from db import get_db
+from schemas.user_scheme import User
 from utils.dependencies import get_current_user
+from schemas.vote_history import VoteHistory
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -217,16 +222,37 @@ VOTING_ABI = [
 
 voting_contract = web3.eth.contract(address=VOTING_CONTRACT_ADDRESS, abi=VOTING_ABI)
 
+
 @router.post("/{poll_id}/{candidate}")
-def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(get_current_user)):
+def create_vote_transaction(
+        poll_id: int,
+        candidate: str,
+        user: dict = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
     user_address = user["wallet_address"]
+
+    # 🔹 Получаем user_id по email из токена
+    user_db = db.query(User).filter(User.email == user["sub"]).first()
+    if not user_db:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    user_id = user_db.id  # Теперь у нас есть корректный user_id (INTEGER)
 
     nonce = web3.eth.get_transaction_count(user_address, "latest")
 
-    # актуальные данные по газу (EIP-1559)
     base_fee = web3.eth.fee_history(1, "latest")["baseFeePerGas"][-1]
     max_priority_fee = web3.to_wei(2, "gwei")
     max_fee = base_fee + max_priority_fee
+
+    # 🔹 Проверяем, голосовал ли пользователь ранее
+    existing_vote = db.query(VoteHistory).filter(
+        VoteHistory.user_id == user_id,
+        VoteHistory.poll_id == poll_id
+    ).first()
+
+    if existing_vote:
+        raise HTTPException(status_code=400, detail="Вы уже голосовали в этом голосовании")
 
     try:
         estimated_gas = voting_contract.functions.vote(poll_id, candidate).estimate_gas({
@@ -247,7 +273,13 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
             'chainId': 11155111
         })
 
-        return {"transaction": tx}
+        # 🔹 Добавляем запись в историю голосований с user_id
+        vote_history = VoteHistory(user_id=user_id, poll_id=poll_id)
+        db.add(vote_history)
+        db.commit()
+        db.refresh(vote_history)
+
+        return {"transaction": tx, "message": "Ваш голос успешно зарегистрирован"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при создании транзакции: {str(e)}")
@@ -257,3 +289,24 @@ def create_vote_transaction(poll_id: int, candidate: str, user: dict = Depends(g
 def get_votes(poll_id: int, candidate: str):
     votes = voting_contract.functions.getResult(poll_id, candidate).call()
     return {"poll_id": poll_id, "candidate": candidate, "votes": votes}
+
+
+@router.get("/vote-history")
+def get_vote_history(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    # 🔹 Получаем user_id по email из токена
+    user_db = db.query(User).filter(User.email == user["sub"]).first()
+    if not user_db:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    user_id = user_db.id  # Теперь у нас есть корректный user_id (INTEGER)
+
+    history = db.query(VoteHistory).filter(VoteHistory.user_id == user_id).all()
+
+    return [
+        {
+            "poll_id": record.poll_id,
+            "timestamp": record.timestamp
+        }
+        for record in history
+    ]
+
