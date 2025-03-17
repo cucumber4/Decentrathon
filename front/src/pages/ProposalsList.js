@@ -27,10 +27,33 @@ const ProposalsList = () => {
             await axios.post(`http://127.0.0.1:8000/polls/approve/${proposalId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
+            // Обновляем состояние: помечаем голосование как одобренное
+            setProposals((prevProposals) =>
+                prevProposals.map((proposal) =>
+                    proposal.id === proposalId ? { ...proposal, approved_by_admin: true } : proposal
+                )
+            );
+
             setMessage("Голосование одобрено!");
-            fetchProposals();
         } catch (error) {
             setMessage("Ошибка одобрения голосования.");
+        }
+    }
+
+    async function rejectPoll(proposalId) {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`http://127.0.0.1:8000/polls/reject/${proposalId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Обновляем состояние: убираем отклонённое голосование
+            setProposals((prevProposals) => prevProposals.filter((proposal) => proposal.id !== proposalId));
+
+            setMessage("Голосование отклонено.");
+        } catch (error) {
+            setMessage("Ошибка отклонения голосования.");
         }
     }
 
@@ -40,8 +63,15 @@ const ProposalsList = () => {
             const response = await axios.post(`http://127.0.0.1:8000/polls/send-to-contract/${proposalId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
+            // Обновляем состояние: помечаем как отправленное в контракт
+            setProposals((prevProposals) =>
+                prevProposals.map((proposal) =>
+                    proposal.id === proposalId ? { ...proposal, approved: true } : proposal
+                )
+            );
+
             setMessage(`Голосование отправлено в контракт! TX Hash: ${response.data.tx_hash}`);
-            fetchProposals();
         } catch (error) {
             setMessage("Ошибка отправки голосования в контракт.");
         }
@@ -101,6 +131,7 @@ const ProposalsList = () => {
         fontWeight: 600,
         cursor: "pointer",
         transition: "background-color 0.2s ease",
+        marginRight: "8px",
     };
 
     const approveButtonStyle = {
@@ -113,6 +144,12 @@ const ProposalsList = () => {
         ...buttonStyle,
         backgroundColor: "#FFA500",
         color: "#000",
+    };
+
+    const rejectButtonStyle = {
+        ...buttonStyle,
+        backgroundColor: "#FF4C4C",
+        color: "#FFFFFF",
     };
 
     const messageStyle = {
@@ -141,20 +178,23 @@ const ProposalsList = () => {
                                         <li key={index}>- {candidate}</li>
                                     ))}
                                 </ul>
-                                {!proposal.approved ? (
-                                    <button 
-                                        onClick={() => approvePoll(proposal.id)} 
-                                        style={approveButtonStyle}
-                                    >
-                                        Одобрить
-                                    </button>
-                                ) : (
-                                    <button 
-                                        onClick={() => sendToContract(proposal.id)} 
-                                        style={contractButtonStyle}
-                                    >
+                                
+                                {/* 🔹 Кнопки управления */}
+                                {!proposal.approved_by_admin ? (
+                                    <>
+                                        <button onClick={() => approvePoll(proposal.id)} style={approveButtonStyle}>
+                                            Одобрить
+                                        </button>
+                                        <button onClick={() => rejectPoll(proposal.id)} style={rejectButtonStyle}>
+                                            Отклонить
+                                        </button>
+                                    </>
+                                ) : !proposal.approved ? (
+                                    <button onClick={() => sendToContract(proposal.id)} style={contractButtonStyle}>
                                         Отправить в контракт
                                     </button>
+                                ) : (
+                                    <p style={{ color: "#FFD700" }}>Отправлено в контракт</p>
                                 )}
                             </li>
                         ))}

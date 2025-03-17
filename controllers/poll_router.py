@@ -483,3 +483,16 @@ def send_proposed_poll_to_contract(proposal_id: int, db: Session = Depends(get_d
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка отправки в контракт: {str(e)}")
+
+
+@router.delete("/reject/{proposal_id}")
+def reject_proposed_poll(proposal_id: int, db: Session = Depends(get_db), user: dict = Depends(is_admin)):
+    proposed_poll = db.query(ProposedPoll).filter(ProposedPoll.id == proposal_id).first()
+
+    if not proposed_poll:
+        raise HTTPException(status_code=404, detail="Предложенное голосование не найдено")
+
+    db.delete(proposed_poll)
+    db.commit()
+
+    return {"message": "Голосование успешно отклонено"}
