@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const CreatePoll = () => {
     const [pollData, setPollData] = useState({
         name: "",
+        description: "",
         candidates: [""]
     });
     const [message, setMessage] = useState("");
@@ -30,6 +31,10 @@ const CreatePoll = () => {
 
     const handleNameChange = (e) => {
         setPollData({ ...pollData, name: e.target.value });
+    };
+
+    const handleDescriptionChange = (e) => {
+        setPollData({ ...pollData, description: e.target.value });
     };
 
     const addCandidate = () => {
@@ -59,7 +64,7 @@ const CreatePoll = () => {
 
         try {
             const response = await axios.post("http://127.0.0.1:8000/polls/create", pollData, {
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 }
@@ -155,7 +160,20 @@ const CreatePoll = () => {
                         style={inputStyle}
                         required
                     />
-                    
+
+                    <textarea
+                        name="description"
+                        placeholder="Описание голосования"
+                        value={pollData.description}
+                        onChange={handleDescriptionChange}
+                        style={{
+                            ...inputStyle,
+                            minHeight: "80px",
+                            resize: "vertical"
+                        }}
+                        required
+                    />
+
                     {pollData.candidates.map((candidate, index) => (
                         <div key={index} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                             <input

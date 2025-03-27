@@ -4,8 +4,8 @@ import { ethers } from "ethers";
 import { useParams, useNavigate } from "react-router-dom";
 
 const PollDetail = () => {
-    const { pollId } = useParams();           // Получаем ID из URL для загрузки данных (не для голосования!)
-    const [poll, setPoll] = useState(null);   // Текущее голосование
+    const { pollId } = useParams();
+    const [poll, setPoll] = useState(null);
     const [message, setMessage] = useState("");
     const [hoveredCandidate, setHoveredCandidate] = useState(null);
     const navigate = useNavigate();
@@ -14,44 +14,42 @@ const PollDetail = () => {
     const VOTING_CONTRACT_ADDRESS = "0x0946E6cBd737764BdbEC76430d030d30c653A7f9";
     const TOKEN_ABI = [
         {
-            "constant": false,
             "inputs": [
-                { "name": "spender", "type": "address" },
-                { "name": "amount", "type": "uint256" }
+                { "internalType": "address", "name": "spender", "type": "address" },
+                { "internalType": "uint256", "name": "amount", "type": "uint256" }
             ],
             "name": "approve",
-            "outputs": [{ "name": "", "type": "bool" }],
+            "outputs": [
+                { "internalType": "bool", "name": "", "type": "bool" }
+            ],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
-            "constant": true,
             "inputs": [
-                { "name": "owner", "type": "address" },
-                { "name": "spender", "type": "address" }
+                { "internalType": "address", "name": "owner", "type": "address" },
+                { "internalType": "address", "name": "spender", "type": "address" }
             ],
             "name": "allowance",
-            "outputs": [{ "name": "", "type": "uint256" }],
+            "outputs": [
+                { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
             "type": "function"
         }
     ];
+    
 
-    // Пример отображения кандидатов: если в данных хранится число, то используем маппинг.
-    const candidateMapping = {
-        0: "",
-    };
+    const candidateMapping = { 0: "" };
 
-    // Подключаем Montserrat
     useEffect(() => {
         const link = document.createElement("link");
         link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
         link.rel = "stylesheet";
         document.head.appendChild(link);
-        return () => {
-            document.head.removeChild(link);
-        };
+        return () => document.head.removeChild(link);
     }, []);
 
-    // Загружаем детали одного голосования (из базы)
     useEffect(() => {
         fetchPollDetail();
     }, []);
@@ -88,10 +86,8 @@ const PollDetail = () => {
         const userAddress = await signer.getAddress();
 
         try {
-            // Проверяем allowance
             const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
             const allowance = await tokenContract.allowance(userAddress, VOTING_CONTRACT_ADDRESS);
-            console.log(`Allowance: ${ethers.formatUnits(allowance, 18)} AGA`);
 
             if (allowance < ethers.parseUnits("10", 18)) {
                 setMessage("Выполняем approve на 10 AGA...");
@@ -100,7 +96,6 @@ const PollDetail = () => {
                 setMessage("Approve выполнен! Теперь отправляем голос.");
             }
 
-            // Отправляем запрос на сервер для получения "сырой" транзакции
             const response = await axios.post(
                 `http://127.0.0.1:8000/votes/${pollId}/${candidate}`,
                 {},
@@ -113,7 +108,6 @@ const PollDetail = () => {
                 return;
             }
 
-            // Подписываем транзакцию в MetaMask
             const tx = await signer.sendTransaction({
                 to: txData.to,
                 value: txData.value ? ethers.toBigInt(txData.value) : 0n,
@@ -130,7 +124,6 @@ const PollDetail = () => {
         }
     }
 
-    // Стили
     const pageStyle = {
         minHeight: "100vh",
         margin: 0,
@@ -166,6 +159,13 @@ const PollDetail = () => {
     const pollNameStyle = {
         fontSize: "1.2rem",
         fontWeight: 600,
+        marginBottom: "6px",
+    };
+
+    const descriptionStyle = {
+        fontSize: "0.95rem",
+        fontStyle: "italic",
+        color: "#ccc",
         marginBottom: "10px",
     };
 
@@ -217,11 +217,12 @@ const PollDetail = () => {
             <div style={containerStyle}>
                 <h2 style={headerStyle}>Голосование</h2>
                 <div style={pollNameStyle}>{poll.name}</div>
+                <div style={descriptionStyle}>{poll.description}</div>
                 <div style={candidatesListStyle}>
                     {poll.candidates.map((candidate) => {
-                        // Если кандидат хранится как число, используем mapping
-                        const candidateName = typeof candidate === "number" ? 
-                            (candidateMapping[candidate] || candidate.toString()) : candidate;
+                        const candidateName = typeof candidate === "number"
+                            ? (candidateMapping[candidate] || candidate.toString())
+                            : candidate;
                         const isHovering = hoveredCandidate === candidateName;
                         return (
                             <button

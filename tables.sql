@@ -48,3 +48,11 @@ CREATE TABLE vote_history (
     poll_id INTEGER REFERENCES polls(id) ON DELETE CASCADE,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Добавляем описание к активным голосованиям
+ALTER TABLE polls
+ADD COLUMN description TEXT DEFAULT '';
+
+-- Добавляем описание к предложенным голосованиям
+ALTER TABLE proposed_polls
+ADD COLUMN description TEXT DEFAULT '';

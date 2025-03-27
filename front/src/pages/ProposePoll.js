@@ -3,11 +3,11 @@ import axios from "axios";
 
 const ProposePoll = () => {
     const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
     const [candidates, setCandidates] = useState([""]);
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        // Подключаем Google Font (Montserrat)
         const link = document.createElement("link");
         link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
         link.rel = "stylesheet";
@@ -48,13 +48,15 @@ const ProposePoll = () => {
         }
 
         try {
-            const response = await axios.post("http://127.0.0.1:8000/polls/propose", 
-                { name, candidates }, 
+            const response = await axios.post(
+                "http://127.0.0.1:8000/polls/propose",
+                { name, description, candidates },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
             setMessage("Предложение успешно отправлено!");
             setName("");
+            setDescription("");
             setCandidates([""]);
         } catch (error) {
             setMessage("Ошибка при отправке предложения: " + (error.response?.data?.detail || "Неизвестная ошибка"));
@@ -108,13 +110,6 @@ const ProposePoll = () => {
         width: "100%",
     };
 
-    const buttonContainerStyle = {
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        marginTop: "8px",
-    };
-
     const buttonStyle = {
         padding: "12px",
         borderRadius: "6px",
@@ -124,10 +119,6 @@ const ProposePoll = () => {
         fontWeight: 600,
         cursor: "pointer",
         transition: "background-color 0.2s ease",
-    };
-
-    const buttonHover = {
-        backgroundColor: "#00E6AE",
     };
 
     const messageStyle = {
@@ -144,14 +135,23 @@ const ProposePoll = () => {
             <div style={containerStyle}>
                 <h2 style={headerStyle}>Предложить голосование</h2>
                 <form onSubmit={handleSubmit} style={formStyle}>
-                    <input 
-                        type="text" 
-                        name="name" 
-                        placeholder="Название голосования" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)} 
-                        required 
-                        style={inputStyle} 
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Название голосования"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+
+                    <textarea
+                        name="description"
+                        placeholder="Описание голосования"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                        style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }}
                     />
 
                     {candidates.map((candidate, index) => (
@@ -165,8 +165,8 @@ const ProposePoll = () => {
                                 style={inputStyle}
                             />
                             {candidates.length > 2 && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => removeCandidate(index)}
                                     style={{
                                         ...buttonStyle,
@@ -182,30 +182,20 @@ const ProposePoll = () => {
                     ))}
 
                     {candidates.length < 8 && (
-                        <button 
-                            type="button" 
-                            onClick={addCandidate} 
-                            style={{
-                                ...buttonStyle,
-                                backgroundColor: "#00FFC2",
-                                color: "#000"
-                            }}
+                        <button
+                            type="button"
+                            onClick={addCandidate}
+                            style={buttonStyle}
                         >
                             + Добавить кандидата
                         </button>
                     )}
 
-                    <button 
-                        type="submit" 
-                        style={{
-                            ...buttonStyle,
-                            backgroundColor: "#00FFC2",
-                            color: "#000"
-                        }}
-                    >
+                    <button type="submit" style={buttonStyle}>
                         Предложить голосование
                     </button>
                 </form>
+
                 {message && <p style={messageStyle}>{message}</p>}
             </div>
         </div>

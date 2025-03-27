@@ -244,6 +244,7 @@ def get_valid_nonce(wallet_address):
 # Pydantic-модель
 class PollCreate(BaseModel):
     name: str
+    description: str
     candidates: list[str]
 
 
@@ -274,7 +275,7 @@ def create_poll(poll: PollCreate, db: Session = Depends(get_db), user: dict = De
                                                   'b4cec174d98688e762355891cbc52759bf5996cb7b47057d1b151b68e9454209')
     tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
-    new_poll = Poll(name=poll.name, candidates=poll.candidates)
+    new_poll = Poll(name=poll.name, candidates=poll.candidates, description=poll.description)
     db.add(new_poll)
     db.commit()
 
@@ -284,7 +285,7 @@ def create_poll(poll: PollCreate, db: Session = Depends(get_db), user: dict = De
 @router.get("/list/")
 def get_polls(db: Session = Depends(get_db)):
     polls = db.query(Poll).all()
-    return [{"id": poll.id, "name": poll.name, "candidates": poll.candidates} for poll in polls]
+    return [{"id": poll.id, "name": poll.name, "description": poll.description, "candidates": poll.candidates} for poll in polls]
 
 
 @router.get("/list/onchain/")
@@ -407,6 +408,7 @@ def get_polls_onchain():
 
 class ProposedPollRequest(BaseModel):
     name: str
+    description: str
     candidates: List[str]
 
 
@@ -417,8 +419,10 @@ def propose_poll(poll_request: ProposedPollRequest, user: dict = Depends(get_cur
 
     proposed_poll = ProposedPoll(
         name=poll_request.name,
-        candidates=poll_request.candidates
+        candidates=poll_request.candidates,
+        description = poll_request.description
     )
+
     db.add(proposed_poll)
     db.commit()
     db.refresh(proposed_poll)
