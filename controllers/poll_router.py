@@ -451,11 +451,16 @@ def approve_proposed_poll(proposal_id: int, db: Session = Depends(get_db), user:
     # Обновляем статус в БД
     proposed_poll.approved_by_admin = True
 
-    new_poll = Poll(name=proposed_poll.name, candidates=proposed_poll.candidates)
+    new_poll = Poll(
+        name=proposed_poll.name,
+        candidates=proposed_poll.candidates,
+        description=proposed_poll.description  # ✅ добавляем описание
+    )
     db.add(new_poll)
     db.commit()
 
     return {"message": "Голосование одобрено администратором", "poll_id": proposal_id}
+
 
 
 @router.post("/send-to-contract/{proposal_id}")
