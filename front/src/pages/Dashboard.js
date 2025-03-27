@@ -6,9 +6,9 @@ const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [message, setMessage] = useState("");
     const [agaBalance, setAgaBalance] = useState(null);
-    const [searchTerm, setSearchTerm] = useState(""); // Поисковый запрос
-    const [polls, setPolls] = useState([]); // Список найденных голосований
-    const [loading, setLoading] = useState(false); // Индикатор загрузки
+    const [searchTerm, setSearchTerm] = useState("");
+    const [polls, setPolls] = useState([]);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,7 +38,6 @@ const Dashboard = () => {
         fetchUserData();
     }, [navigate]);
 
-    // 🔍 Функция поиска голосований по названию
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
             setMessage("Введите название голосования!");
@@ -60,6 +59,18 @@ const Dashboard = () => {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRequestTokens = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.post("http://127.0.0.1:8000/tokens/request-tokens", {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setMessage(response.data.message);
+        } catch (error) {
+            setMessage(error.response?.data?.detail || "Ошибка запроса токенов");
         }
     };
 
@@ -95,7 +106,6 @@ const Dashboard = () => {
                             <button onClick={handleSearch} style={buttonStyle}>Найти</button>
                         </div>
 
-                        {/* 📋 Результаты поиска */}
                         {loading ? (
                             <p style={{ textAlign: "center" }}>🔄 Загрузка...</p>
                         ) : (
@@ -118,18 +128,19 @@ const Dashboard = () => {
                             <button onClick={() => navigate("/results")} style={buttonStyle}>Посмотреть результаты</button>
                             <button onClick={() => navigate("/vote-history")} style={buttonStyle}>История голосований</button>
 
-                            {/* Кнопки пользователя */}
                             {user.role === "user" && (
                                 <>
+                                    <button onClick={handleRequestTokens} style={buttonStyle}>Запросить 10 AGA</button>
                                     <button onClick={() => navigate("/propose")} style={buttonStyle}>Предложить голосование</button>
                                 </>
                             )}
 
-                            {/* Кнопки администратора */}
                             {user.role === "admin" && (
                                 <>
                                     <button onClick={() => navigate("/create-poll")} style={buttonStyle}>Создать голосование</button>
+                                    <button onClick={() => navigate("/admin")} style={buttonStyle}>Открыть/Закрыть голосования</button>
                                     <button onClick={() => navigate("/proposals")} style={buttonStyle}>Просмотреть предложения</button>
+                                    <button onClick={() => navigate("/token-requests")} style={buttonStyle}>Запросы на токены</button>
                                 </>
                             )}
 
