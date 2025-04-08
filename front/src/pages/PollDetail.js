@@ -38,7 +38,7 @@ const PollDetail = () => {
             "type": "function"
         }
     ];
-    
+
 
     const candidateMapping = { 0: "" };
 
@@ -56,7 +56,7 @@ const PollDetail = () => {
 
     async function fetchPollDetail() {
         try {
-            const pollsResponse = await axios.get("http://127.0.0.1:8000/polls/list/");
+            const pollsResponse = await axios.get("/api/polls/list/");
             const allPolls = pollsResponse.data;
             const foundPoll = allPolls.find((p) => p.id == pollId);
             if (!foundPoll) {
@@ -97,7 +97,7 @@ const PollDetail = () => {
             }
 
             const response = await axios.post(
-                `http://127.0.0.1:8000/votes/${pollId}/${candidate}`,
+                `/api/votes/${pollId}/${candidate}`,
                 {},
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );

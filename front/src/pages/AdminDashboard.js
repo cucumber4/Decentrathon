@@ -1,31 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import SidebarLayout from "../components/SidebarLayout";
+import "./Dashboard.css";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
+    const [user, setUser] = useState(null);
+    const [agaBalance, setAgaBalance] = useState(null);
+    const [showUserInfo, setShowUserInfo] = useState(false);
     const [polls, setPolls] = useState([]);
     const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(true); // Флаг загрузки данных
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchPolls();
     }, []);
 
+    useEffect(() => {
+    const fetchUserData = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/");
+            return;
+        }
+
+        try {
+            const response = await axios.get("/api/user/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(response.data);
+
+            const balanceResponse = await axios.get(`/api/user/balance/${response.data.wallet_address}`);
+            setAgaBalance(balanceResponse.data.balance);
+        } catch (error) {
+            console.error("Error loading user:", error);
+            localStorage.removeItem("token");
+            navigate("/");
+        }
+    };
+
+        fetchUserData();
+    }, [navigate]);
+
+
     async function fetchPolls() {
         try {
-            const response = await axios.get("http://127.0.0.1:8000/polls/list/onchain/");
+            const response = await axios.get("/api/polls/list/onchain/");
             setPolls(response.data);
         } catch (error) {
-            console.error("Ошибка загрузки голосований:", error);
-            setMessage("Ошибка загрузки голосований.");
+            console.error("Error loading polls:", error);
+            setMessage("Error loading polls.");
         } finally {
-            setTimeout(() => setLoading(false), 1000); // Задержка в 1 секунду для плавной загрузки
+            setTimeout(() => setLoading(false), 1000);
         }
     }
 
     async function togglePollStatus(pollId, isActive) {
         const endpoint = isActive
-            ? `http://127.0.0.1:8000/polls/close/${pollId}`
-            : `http://127.0.0.1:8000/polls/open/${pollId}`;
+            ? `/api/polls/close/${pollId}`
+            : `/api/polls/open/${pollId}`;
 
         try {
             const token = localStorage.getItem("token");
@@ -34,85 +68,31 @@ const AdminDashboard = () => {
             });
 
             setMessage(response.data.message);
-            fetchPolls(); // Обновить список после изменения
+            fetchPolls();
         } catch (error) {
-            console.error("Ошибка при изменении статуса голосования:", error);
-            setMessage("Ошибка изменения статуса голосования.");
+            console.error("Error changing poll status:", error);
+            setMessage("Error changing poll status.");
         }
     }
 
-    // 🔹 Стили (единый дизайн с остальными страницами)
-    const pageStyle = {
-        minHeight: "100vh",
-        margin: 0,
-        padding: 0,
-        background: "radial-gradient(circle at top, #222 0%, #111 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "'Montserrat', sans-serif",
-    };
-
-    const containerStyle = {
-        width: "600px",
-        padding: "30px",
-        borderRadius: "8px",
-        backgroundColor: "rgba(30, 30, 47, 0.9)",
-        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-        color: "#FFFFFF",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-    };
-
-    const headerStyle = {
-        textAlign: "center",
-        color: "#00FFC2",
-        fontSize: "1.5rem",
+    const headingStyle = {
+        fontSize: "30px",
         fontWeight: 600,
-        textShadow: "0 0 5px rgba(0,255,194,0.4)",
+        marginBottom: "25px",
+        background: "linear-gradient(90deg, #6e8efb, #a777e3)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
     };
 
-    const pollsListStyle = {
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-    };
-
-    const pollItemStyle = {
-        backgroundColor: "#2C2C3A",
-        padding: "12px",
-        borderRadius: "6px",
+    const pollCardStyle = {
+        background: "#2C2C3A",
+        padding: "16px",
+        borderRadius: "8px",
+        marginBottom: "12px",
+        border: "1px solid #444",
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center",
-        border: "1px solid #444",
-    };
-
-    const buttonStyle = {
-        padding: "8px 12px",
-        borderRadius: "6px",
-        border: "none",
-        fontWeight: 600,
-        cursor: "pointer",
-        transition: "background-color 0.2s ease",
-        fontSize: "0.9rem",
-        textAlign: "center",
-    };
-
-    const openButton = {
-        ...buttonStyle,
-        backgroundColor: "#00FFC2",
-        color: "#000",
-    };
-
-    const closeButton = {
-        ...buttonStyle,
-        backgroundColor: "#FF4D4D",
-        color: "#000",
+        alignItems: "center"
     };
 
     const messageStyle = {
@@ -122,32 +102,43 @@ const AdminDashboard = () => {
         backgroundColor: "#2C2C3A",
         padding: "10px",
         borderRadius: "6px",
+        color: "white"
     };
 
     return (
-        <div style={pageStyle}>
-            <div style={containerStyle}>
-                <h1 style={headerStyle}>Админ Панель</h1>
+        <SidebarLayout
+            user={user}
+            agaBalance={agaBalance}
+            showUserInfo={showUserInfo}
+            setShowUserInfo={setShowUserInfo}
+            handleRequestTokens={() => {}} // Not needed for admin
+        >
+            <div style={{ maxWidth: "700px", width: "100%" }}>
+                <h3 style={headingStyle}>Admin Panel</h3>
 
                 {loading ? (
-                    <p style={{ textAlign: "center" }}>Загрузка голосований...</p>
+                    <p style={{ textAlign: "center", color: "white" }}>Loading polls...</p>
                 ) : polls.length === 0 ? (
-                    <p style={{ textAlign: "center" }}>Нет доступных голосований.</p>
+                    <p style={{ textAlign: "center", color: "white" }}>No polls available.</p>
                 ) : (
-                    <ul style={pollsListStyle}>
+                    <ul style={{ listStyleType: "none", padding: 0 }}>
                         {polls.map((poll) => (
-                            <li key={poll.id} style={pollItemStyle}>
-                                <div>
-                                    <strong>{poll.name}</strong> —{" "}
+                            <li key={poll.id} style={pollCardStyle}>
+                                <div style={{ color: "white" }}>
+                                    <strong>{poll.name}</strong>{" "}
                                     <span style={{ color: poll.active ? "limegreen" : "red" }}>
-                                        {poll.active ? "Открыто" : "Закрыто"}
+                                        — {poll.active ? "Open" : "Closed"}
                                     </span>
                                 </div>
                                 <button
+                                    className="gradient-button"
+                                    style={{
+                                        backgroundColor: poll.active ? "#FF6B6B" : "#00FFC2",
+                                        color: "#000"
+                                    }}
                                     onClick={() => togglePollStatus(poll.id, poll.active)}
-                                    style={poll.active ? closeButton : openButton}
                                 >
-                                    {poll.active ? "Закрыть" : "Открыть"}
+                                    {poll.active ? "Close" : "Open"}
                                 </button>
                             </li>
                         ))}
@@ -156,7 +147,7 @@ const AdminDashboard = () => {
 
                 {message && <p style={messageStyle}>{message}</p>}
             </div>
-        </div>
+        </SidebarLayout>
     );
 };
 

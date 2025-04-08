@@ -16,13 +16,16 @@ import ProposalsList from "./pages/ProposalsList";
 import TokenRequests from "./pages/TokenRequests";
 import VoteHistory from "./pages/VoteHistory";
 
+import LandingPage from "./pages/LandingPage";
+
 
 
 function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/create-poll" element={<CreatePoll />} />

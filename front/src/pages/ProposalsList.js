@@ -12,7 +12,7 @@ const ProposalsList = () => {
     async function fetchProposals() {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://127.0.0.1:8000/polls/proposals", {
+            const response = await axios.get("/api/polls/proposals", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setProposals(response.data);
@@ -24,7 +24,7 @@ const ProposalsList = () => {
     async function approvePoll(proposalId) {
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://127.0.0.1:8000/polls/approve/${proposalId}`, {}, {
+            await axios.post(`/api/polls/approve/${proposalId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -44,7 +44,7 @@ const ProposalsList = () => {
     async function rejectPoll(proposalId) {
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://127.0.0.1:8000/polls/reject/${proposalId}`, {
+            await axios.delete(`/api/polls/reject/${proposalId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -60,7 +60,7 @@ const ProposalsList = () => {
     async function sendToContract(proposalId) {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.post(`http://127.0.0.1:8000/polls/send-to-contract/${proposalId}`, {}, {
+            const response = await axios.post(`/api/polls/send-to-contract/${proposalId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

@@ -12,7 +12,7 @@ const TokenRequests = () => {
     async function fetchRequests() {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://127.0.0.1:8000/tokens/token-requests", {
+            const response = await axios.get("/api/tokens/token-requests", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setRequests(response.data);
@@ -24,7 +24,7 @@ const TokenRequests = () => {
     async function handleApprove(id) {
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://127.0.0.1:8000/tokens/approve-request/${id}`, {}, {
+            await axios.post(`/api/tokens/approve-request/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchRequests();
@@ -36,7 +36,7 @@ const TokenRequests = () => {
     async function handleReject(id) {
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://127.0.0.1:8000/tokens/reject-request/${id}`, {}, {
+            await axios.post(`/api/tokens/reject-request/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchRequests();

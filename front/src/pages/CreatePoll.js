@@ -63,7 +63,7 @@ const CreatePoll = () => {
         }
 
         try {
-            const response = await axios.post("http://127.0.0.1:8000/polls/create", pollData, {
+            const response = await axios.post("/api/polls/create", pollData, {
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`

@@ -1,0 +1,174 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.left-side-login {
+  width: 40%;
+  height: 100vh;
+  background: url("../assets/backlogin3.png") no-repeat left center;
+  background-size: cover;
+  background-position: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  padding: 20px 0 20px 50px; /* Increased left padding to shift text */
+  position: relative;
+}
+
+
+
+
+/*.left-image {*/
+/*  position: absolute;*/
+/*  top: 0;*/
+/*  left: 0;*/
+/*  width: 100%; !* Ensure it fully fits *!*/
+/*  height: 100%; !* Make sure it covers the full height *!*/
+/*  object-fit: cover; !* Ensures no distortion *!*/
+/*  z-index: 1;*/
+/*}*/
+
+
+.aga-logo {
+  position: absolute;
+  top: 20px; /* Adjust to position it properly */
+  left: 20px; /* Adjust to position it properly */
+  width: 50px; /* Adjust the size */
+  height: auto;
+  z-index: 2;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in-text {
+  font-size: 20px;
+  color: white;
+  text-align: left;
+  opacity: 0;
+  animation: fadeInScale 1.5s ease-out forwards;
+  z-index: 2;
+  margin-left: 100px;
+  margin-bottom: 100px
+}
+
+.welcome-back {
+  font-size: 40px; /* Increase the font size for "Welcome Back!" */
+  font-weight: bold;
+  line-height: 100px;
+}
+
+
+
+
+/* .fade-in-text {
+  font-size: 20px;
+  color: white;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+  z-index: 2;
+}
+
+.fade-in-text.visible {
+  opacity: 1;
+  transform: translateY(0);
+} */
+
+.right-side-login {
+  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 5vw;
+}
+
+.login-box {
+  width: 400px;
+  background: white;
+  padding: 40px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  text-align: left;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: black;
+}
+
+p {
+  font-size: 14px;
+  color: gray;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+  padding: 10px;
+  border-bottom: 2px solid #ccc;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.icon {
+  margin-right: 10px;
+  color: gray;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(to right, #a777e3, #6e8efb);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-btn:hover {
+  background: linear-gradient(to right, #6e8efb, #a777e3);
+}
+
+.register-text {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: gray;
+}
+
+.register-link {
+  color: #a777e3;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
+
+.register-link:hover {
+  color: #6e8efb;
+}
+
+

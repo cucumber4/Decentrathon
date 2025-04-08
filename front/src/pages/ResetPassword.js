@@ -18,7 +18,7 @@ const ResetPassword = () => {
         }
 
         try {
-            await axios.post("http://127.0.0.1:8000/user/reset-password", { email, code, new_password: newPassword });
+            await axios.post("/api/user/reset-password", { email, code, new_password: newPassword });
             setMessage("Пароль успешно сброшен! Перенаправление...");
             setTimeout(() => navigate("/"), 2000);
         } catch (error) {

@@ -1,0 +1,99 @@
+/* General Styles */
+.register-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Wider & More Compact Box */
+.register-box {
+  background: white;
+  padding: 30px; /* Reduced padding */
+  width: 450px; /* Slightly wider */
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Reduce spacing */
+h2 {
+  font-size: 22px;
+  margin-bottom: 5px; /* Less space */
+  color: black;
+}
+
+p {
+  font-size: 13px;
+  color: gray;
+  margin-bottom: 15px; /* Less space */
+}
+
+/* Input Fields - Reduced Spacing */
+.input-group {
+  display: flex;
+  align-items: center;
+  margin: 8px 0; /* Reduce vertical spacing */
+  padding: 8px; /* Reduce padding */
+  border-bottom: 2px solid #ccc;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 5px;
+  font-size: 15px;
+}
+
+.icon {
+  margin-right: 8px; /* Less space */
+  color: gray;
+}
+
+/* Buttons */
+.register-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(to right, #a777e3, #6e8efb);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.register-btn:hover {
+  background: linear-gradient(to right, #6e8efb, #a777e3);
+}
+
+/* Login Link */
+.login-text {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 13px;
+  color: gray;
+}
+
+.login-link {
+  color: #a777e3;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
+
+.login-link:hover {
+  color: #6e8efb;
+}
+
+/* AGA Logo - Slightly Smaller */
+.register-logo {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 50px; /* Smaller */
+  height: auto;
+}

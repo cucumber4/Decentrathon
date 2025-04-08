@@ -1,0 +1,190 @@
+/* Main Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    width: 100%; /* ✅ Make sure full width is used */
+    overflow: hidden;
+}
+
+/* Sidebar */
+
+.sidebar-scroll {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar {
+    width: 380px;
+    background-color: #14192D;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex-shrink: 0;
+    height: 100vh;
+}
+/* Logo - Properly Positioned */
+.logo {
+    width: 50px;
+    align-self: flex-start;
+}
+
+/* User Icon - Always Visible */
+.user-icon {
+    width: 150px;
+    height: 150px;
+    min-width: 150px;
+    min-height: 150px;
+    border-radius: 50%;
+    background-color: #22284A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+/* User Info Button */
+.user-info-button {
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin: 8px 0;
+    padding: 12px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 90%;
+    text-align: center;
+    transition: 0.3s;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.user-info-button:hover {
+    opacity: 0.8;
+}
+
+/* User Info - Smooth Expanding Animation */
+.user-info-container {
+    width: 100%;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    height: 0;
+}
+
+.user-info-container.show {
+    opacity: 1;
+    height: auto;
+}
+
+
+/* User Info Text */
+.user-info {
+    text-align: left;
+    color: white;
+    width: 90%;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+/* Sidebar Buttons - Oval */
+.sidebar-button {
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin: 8px 0;
+    padding: 14px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 90%;
+    text-align: center;
+}
+
+.sidebar-button:hover {
+    opacity: 0.8;
+}
+
+/* Main Content (Right Side) */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  padding: 50px 40px 40px 40px; /* ✅ more padding on top */
+  color: #333;
+  border-top-left-radius: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar.collapsed {
+    width: 0;
+}
+
+.sidebar {
+  width: 300px;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed + .collapse-btn {
+  left: 0; /* move button to screen edge */
+}
+
+.collapse-btn {
+  position: absolute;
+  top: 20px;
+  left: 300px; /* aligns to expanded sidebar edge */
+  z-index: 10;
+  background-color: #6e8efb;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  transition: left 0.3s ease;
+}
+
+
+/* Search Bar */
+.search-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 30px; /* ✅ separates it from chart */
+  z-index: 1;
+  position: relative;
+}
+
+.input-field {
+  flex-grow: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: 2px solid #ccc; /* ✅ clearly visible border */
+  outline: none;
+  background: white;
+  font-size: 16px;
+  color: #333;
+}
+
+.gradient-button {
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.gradient-button:hover {
+    opacity: 0.8;
+}
+
+

@@ -1,0 +1,103 @@
+/* Navbar Default Style */
+.navbar {
+  width: 100%;
+  background: rgba(20, 25, 45, 0.9); /* Dark semi-transparent */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 5px; /* Reduce padding to push logo left */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Hide Navbar When Scrolling Down */
+.navbar.hide {
+  transform: translateY(-100%);
+}
+
+/* Show Navbar When Scrolling Up */
+.navbar.show {
+  transform: translateY(0);
+}
+
+/* Logo Styling */
+.logo-container {
+  display: flex;
+  align-items: flex-start;
+  /* margin-left: -20px; /*Moves the logo further to the left */
+
+}
+
+.logo {
+  height: 50px; /* Adjust size */
+  width: auto;
+  margin-left: 30px;
+}
+
+/* Navbar Links */
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+  margin-right: -500px;
+  /* margin-left: -100px; */
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  opacity: 0.7;
+}
+
+/* Auth Buttons */
+.auth-links {
+  display: flex;
+  justify-content: end;
+  margin-right: 50px;
+  margin-left: -100px;
+  /* margin-right: 150px; */
+}
+
+/* Fix Register Button Visibility */
+/* .login-btn {
+  width: 220px;
+  padding: 20px 100px; /* Increased padding to make it longer */
+  /* background: linear-gradient(90deg, #6e8efb, #a777e3);
+  border-radius: 25px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  display: block;
+  text-align: center;
+  justify-content: center;
+  align-items: center; */
+  /* padding-left: 100px; */
+/* } */
+
+.login-btn {
+  padding: 15px 40px;
+  font-size: 18px;
+  background: linear-gradient(90deg, #6e8efb, #a777e3);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 30px;
+  font-weight: bold;
+  transition: 0.3s;
+  /* justify-content: end ; */
+}
+
+.login-btn:hover {
+  opacity: 0.8;
+}

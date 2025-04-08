@@ -1,0 +1,68 @@
+@import url('./Dashboard.css'); /* Reuse shared styles */
+
+.dashboard-heading {
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.polls-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.poll-card {
+    background: #2C2C3A;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.open-button {
+    background: #00FFC2;
+    color: #000;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.close-button {
+    background: #FF4D4D;
+    color: #000;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.active {
+    color: limegreen;
+}
+
+.inactive {
+    color: red;
+}
+
+.message-box {
+    margin-top: 15px;
+    text-align: center;
+    background-color: #2C2C3A;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.loading-text {
+    text-align: center;
+    margin-top: 20px;
+}

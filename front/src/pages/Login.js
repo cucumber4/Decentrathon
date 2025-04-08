@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import "./Login.css";
+import leftImage from "../assets/backlogin3.png";
+import logo from "../assets/agalogo.png";
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [message, setMessage] = useState("");
-    const [hoverLogin, setHoverLogin] = useState(false);
-    const [hoverRegister, setHoverRegister] = useState(false);
-    const [hoverForgot, setHoverForgot] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const link = document.createElement("link");
-        link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-        return () => {
-            document.head.removeChild(link);
-        };
-    }, []);
+        setTimeout(() => {
+            setMessage("");
+        }, 3000);
+    }, [message]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,44 +24,51 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://127.0.0.1:8000/user/login", formData, {
+            const response = await axios.post("/api/user/login", formData, {
                 headers: { "Content-Type": "application/json" }
             });
-
-            const { access_token } = response.data;
-            localStorage.setItem("token", access_token);
-            setMessage("Авторизация успешна! Перенаправление...");
+            localStorage.setItem("token", response.data.access_token);
+            setMessage("Login successful! Redirecting...");
             setTimeout(() => navigate("/dashboard"), 1500);
         } catch (error) {
-            setMessage("Ошибка авторизации: " + (error.response?.data?.detail || "Неизвестная ошибка"));
+            setMessage("Login failed: " + (error.response?.data?.detail || "Unknown error"));
         }
     };
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#111", fontFamily: "Montserrat, sans-serif" }}>
-            <div style={{ width: "420px", padding: "30px", borderRadius: "8px", backgroundColor: "rgba(30, 30, 47, 0.9)", boxShadow: "0 0 10px rgba(0,0,0,0.3)", color: "#FFFFFF" }}>
-                <h2 style={{ textAlign: "center", color: "#00FFC2", fontSize: "1.5rem", fontWeight: 600 }}>Вход в систему</h2>
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <input type="email" name="email" placeholder="Адрес почты" value={formData.email} onChange={handleChange} required style={{ padding: "10px", borderRadius: "6px", backgroundColor: "#2C2C3A", color: "#fff", border: "1px solid #444" }} />
-                    <input type="password" name="password" placeholder="Пароль" value={formData.password} onChange={handleChange} required style={{ padding: "10px", borderRadius: "6px", backgroundColor: "#2C2C3A", color: "#fff", border: "1px solid #444" }} />
+        <div className="login-container">
+            <div className="left-side-login" style={{ backgroundImage: `url(${leftImage})` }}>
+                <img src={logo} alt="AGA Logo" className="aga-logo" />
+                <p className="fade-in-text">
+                    <span className="welcome-back">Welcome Back!</span>
+                    <br />
+                    We are glad to see you again on our platform.
+                </p>
+            </div>
+            <div className="right-side-login">
+                <div className="login-box">
+                    <h2>We are <strong>AGA</strong></h2>
+                    <p>Log in to your account.</p>
+                    <form onSubmit={handleSubmit}>
+                        <div className="input-group">
+                            <FaEnvelope className="icon" />
+                            <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+                        </div>
 
-                    <button type="submit" style={{ padding: "12px", borderRadius: "6px", border: "none", backgroundColor: "#00FFC2", color: "#000", fontWeight: 600, cursor: "pointer", transition: "background-color 0.2s ease" }}
-                        onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}>
-                        Войти
-                    </button>
+                        <div className="input-group">
+                            <FaLock className="icon" />
+                            <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
+                        </div>
 
-                    <button type="button" style={{ padding: "12px", borderRadius: "6px", border: "none", backgroundColor: "#00FFC2", color: "#000", fontWeight: 600, cursor: "pointer", transition: "background-color 0.2s ease" }}
-                        onClick={() => navigate("/register")} onMouseEnter={() => setHoverRegister(true)} onMouseLeave={() => setHoverRegister(false)}>
-                        Регистрация
-                    </button>
+                        <button className="login-btn" type="submit">Log in</button>
+                    </form>
 
-                    <button type="button" style={{ padding: "8px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: "#00FFC2", fontWeight: 600, cursor: "pointer", transition: "color 0.2s ease" }}
-                        onClick={() => navigate("/forgot-password")} onMouseEnter={() => setHoverForgot(true)} onMouseLeave={() => setHoverForgot(false)}>
-                        Забыли пароль?
-                    </button>
-                </form>
+                    {message && <p className="message">{message}</p>}
 
-                {message && <p style={{ textAlign: "center", backgroundColor: "#2C2C3A", padding: "10px", borderRadius: "6px", marginTop: "10px" }}>{message}</p>}
+                    <p className="register-text">
+                        Don't have an account yet? <Link to="/register" className="register-link">Register</Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

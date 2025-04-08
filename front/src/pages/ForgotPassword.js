@@ -1,56 +1,119 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import "./ForgotPassword.css";
+import logo from "../assets/agalogo.png";
 
 const ForgotPassword = () => {
-    const [email, setEmail] = useState("");
-    const [code, setCode] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [step, setStep] = useState(1);
-    const [message, setMessage] = useState("");
-    const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [step, setStep] = useState(1);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const sendResetCode = async () => {
-        try {
-            await axios.post("http://127.0.0.1:8000/user/forgot-password", { email });
-            setStep(2);
-        } catch (error) {
-            setMessage("Ошибка отправки кода.");
-        }
-    };
+  const sendResetCode = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/user/forgot-password", { email });
+      setStep(2);
+      setMessage("📩 Code sent to your email");
+    } catch {
+      setMessage("❌ Failed to send code");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const resetPassword = async () => {
-        try {
-            await axios.post("http://127.0.0.1:8000/user/reset-password", { email, code, new_password: newPassword });
-            setMessage("Пароль успешно сброшен! Перенаправление...");
-            setTimeout(() => navigate("/"), 2000);
-        } catch (error) {
-            setMessage("Ошибка сброса пароля.");
-        }
-    };
+  const resetPassword = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/user/reset-password", {
+        email,
+        code,
+        new_password: newPassword,
+      });
+      setMessage("✅ Password reset. Redirecting...");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch {
+      setMessage("❌ Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#111", fontFamily: "Montserrat, sans-serif" }}>
-            <div style={{ width: "420px", padding: "30px", borderRadius: "8px", backgroundColor: "rgba(30, 30, 47, 0.9)", boxShadow: "0 0 10px rgba(0,0,0,0.3)", color: "#FFFFFF" }}>
-                <h2 style={{ textAlign: "center", color: "#00FFC2", fontSize: "1.5rem", fontWeight: 600 }}>Восстановление пароля</h2>
+  return (
+    <div className="login-container">
+      <div className="left-side-login">
+        <img src={logo} alt="AGA Logo" className="aga-logo" />
+      </div>
+      <div className="right-side-login">
+        <div className="form-box">
+          <h2>{step === 1 ? "Reset Password" : "Set New Password"}</h2>
+          <p>{step === 1 ? "Enter your email to receive a reset code." : "Enter the code and your new password."}</p>
 
-                {step === 1 ? (
-                    <>
-                        <input type="email" placeholder="Введите email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                        <button onClick={sendResetCode}>Отправить код</button>
-                    </>
-                ) : (
-                    <>
-                        <input type="text" placeholder="Введите код" value={code} onChange={(e) => setCode(e.target.value)} required />
-                        <input type="password" placeholder="Новый пароль" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-                        <button onClick={resetPassword}>Сбросить пароль</button>
-                    </>
-                )}
+          {step === 1 ? (
+            <>
+              <div className="input-group">
+                <FaEnvelope className="icon" />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <button className="register-btn" onClick={sendResetCode} disabled={loading}>
+                {loading ? "Sending..." : "Send Code"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="input-group">
+                <FaLock className="icon" />
+                <input
+                  type="text"
+                  placeholder="Verification Code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                />
+              </div>
 
-                {message && <p>{message}</p>}
-            </div>
+              <div className="input-group">
+                <FaLock className="icon" />
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button className="register-btn" onClick={resetPassword} disabled={loading}>
+                {loading ? "Resetting..." : "Reset Password"}
+              </button>
+            </>
+          )}
+
+          {message && <p className="message">{message}</p>}
+
+          <p className="login-text">
+            <span className="form-divider">— or —</span><br />
+            Don’t have an account? <Link to="/register" className="login-link">Register</Link>
+          </p>
+
+          <p className="login-text">
+            <Link to="/login" className="login-link">← Back to Login</Link>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default ForgotPassword;
